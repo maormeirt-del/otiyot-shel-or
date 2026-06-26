@@ -851,12 +851,21 @@ window.App = (function () {
   }
   function colorPic(id) {
     const pic = window.COLORING.find(p => p.id === id);
-    let sel = PALETTE[0];
+    let color = PALETTE[0], size = 40;
+    const SIZES = [20, 40, 72];
     UI.show(`${UI.topbar()}
       <div class="color-view">
         <button class="back" onclick="App.coloringStudio()">→ חֲזָרָה לַסְּטוּדִיוֹ</button>
         <button class="color-name nikud" onclick="Speech.say('${pic.word}')">${pic.name} 🔊</button>
-        <div class="color-stage" id="cstage">${pic.svg}</div>
+        <div class="color-stage brush" id="cstage">
+          <canvas id="cpaint" class="paint-canvas" width="600" height="600"></canvas>
+          <div class="line-overlay">${pic.svg}</div>
+        </div>
+        <p class="hint">${g("עֲבֹר עִם הָאֶצְבַּע וְצָבַע לְאַט לְאַט 🖍️", "עִבְרִי עִם הָאֶצְבַּע וְצִבְעִי לְאַט לְאַט 🖍️")}</p>
+        <div class="brush-row">
+          <span class="brush-lbl">מִכְחוֹל:</span>
+          ${SIZES.map((s, i) => `<button class="bsize ${i === 1 ? 'sel' : ''}" data-s="${s}"><span style="width:${10 + i * 8}px;height:${10 + i * 8}px"></span></button>`).join("")}
+        </div>
         <div class="palette" id="pal">
           ${PALETTE.map((c, i) => `<button class="swatch ${i === 0 ? 'sel' : ''}" style="background:${c}" data-c="${c}"></button>`).join("")}
         </div>
@@ -865,17 +874,23 @@ window.App = (function () {
           <button class="btn primary" id="cdone">${g("סִיַּמְתִּי! ✓", "סִיַּמְתִּי! ✓")}</button>
         </div>
       </div>`);
-    const stage = document.getElementById("cstage");
-    function wirePaint() { stage.querySelectorAll(".fillable").forEach(el => el.onclick = () => { el.setAttribute("fill", sel); UI.chime(true); }); }
-    wirePaint();
+    const canvas = document.getElementById("cpaint"), ctx = canvas.getContext("2d");
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    let drawing = false;
+    const pos = e => { const r = canvas.getBoundingClientRect(); const t = e.touches ? e.touches[0] : e; return { x: (t.clientX - r.left) * (canvas.width / r.width), y: (t.clientY - r.top) * (canvas.height / r.height) }; };
+    function dab(p) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(p.x, p.y, size / 2, 0, 7); ctx.fill(); }
+    canvas.addEventListener("pointerdown", e => { drawing = true; ctx.strokeStyle = color; ctx.lineWidth = size; const p = pos(e); dab(p); ctx.beginPath(); ctx.moveTo(p.x, p.y); e.preventDefault(); });
+    canvas.addEventListener("pointermove", e => { if (!drawing) return; const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); });
+    window.addEventListener("pointerup", () => { drawing = false; });
     document.getElementById("pal").querySelectorAll(".swatch").forEach(b => b.onclick = () => {
-      sel = b.dataset.c;
-      document.querySelectorAll(".swatch").forEach(x => x.classList.remove("sel"));
-      b.classList.add("sel");
+      color = b.dataset.c; document.querySelectorAll(".swatch").forEach(x => x.classList.remove("sel")); b.classList.add("sel");
     });
-    document.getElementById("cclear").onclick = () => stage.querySelectorAll(".fillable").forEach(el => el.setAttribute("fill", "#fff"));
+    document.querySelectorAll(".bsize").forEach(b => b.onclick = () => {
+      size = +b.dataset.s; document.querySelectorAll(".bsize").forEach(x => x.classList.remove("sel")); b.classList.add("sel");
+    });
+    document.getElementById("cclear").onclick = () => ctx.clearRect(0, 0, 600, 600);
     document.getElementById("cdone").onclick = () => {
-      const first = State.markDone("color-" + id, 8);
+      State.markDone("color-" + id, 8);
       UI.sparkle(); UI.chime(true);
       UI.toast(g("יָפֶה מְאֹד! צַיָּר אֲמִתִּי 🎨", "יָפֶה מְאֹד! צַיֶּרֶת אֲמִתִּית 🎨"));
       setTimeout(() => UI.celebrateMilestones(), 300);

@@ -394,8 +394,14 @@ window.App = (function () {
         <div class="pg-list">
           <button class="pg-card" onclick="App.gameWheel()"><span class="pg-emoji">🎡</span>
             <span><b>גַּלְגַּל הָאוֹתִיּוֹת</b><br><small>אוֹת + נִקּוּד = הֲבָרָה. שַׁנֵּה וְשָׁמַע!</small></span></button>
+          <button class="pg-card" onclick="App.gameTrace()"><span class="pg-emoji">✍️</span>
+            <span><b>כְּתִיבַת אוֹתִיּוֹת</b><br><small>עֲקֹב עַל הָאוֹת עִם הָאֶצְבַּע!</small></span></button>
           <button class="pg-card" onclick="App.gameOpeningSound()"><span class="pg-emoji">👂</span>
             <span><b>צְלִיל פּוֹתֵחַ</b><br><small>אֵיזוֹ מִלָּה מַתְחִילָה בַּצְּלִיל?</small></span></button>
+          <button class="pg-card" onclick="App.gameClosingSound()"><span class="pg-emoji">👂</span>
+            <span><b>צְלִיל סוֹגֵר</b><br><small>אֵיזוֹ מִלָּה נִגְמֶרֶת בַּצְּלִיל?</small></span></button>
+          <button class="pg-card" onclick="App.gameSyllables()"><span class="pg-emoji">👏</span>
+            <span><b>סְפִירַת הֲבָרוֹת</b><br><small>כַּמָּה הֲבָרוֹת בַּמִּלָּה?</small></span></button>
           <button class="pg-card" onclick="App.gameLetterHunt()"><span class="pg-emoji">🎯</span>
             <span><b>צַיָּד הָאוֹתִיּוֹת</b><br><small>הַקֵּשׁ עַל הָאוֹת הַנְּכוֹנָה מַהֵר!</small></span></button>
           <button class="pg-card" onclick="App.gameWordBubbles()"><span class="pg-emoji">🫧</span>
@@ -445,21 +451,31 @@ window.App = (function () {
     render(); say();
   }
 
-  /* מודעות פונולוגית — צליל פותח (בהשראת "בהצלחה בכיתה א'") */
+  /* מודעות פונולוגית — צליל פותח/סוגר (בהשראת "בהצלחה בכיתה א'") */
   function firstLetter(word) { return word.replace(/[֑-ׇ]/g, "")[0]; }
-  function gameOpeningSound() {
+  function lastLetter(word) {
+    const b = word.replace(/[֑-ׇ]/g, ""); const c = b[b.length - 1];
+    const f = window.FINAL_LETTERS.find(x => x.ch === c); return f ? f.base : c;
+  }
+  function gameOpeningSound() { soundGame("first"); }
+  function gameClosingSound() { soundGame("last"); }
+  function soundGame(which) {
+    const isFirst = which === "first";
+    const title = isFirst ? "צְלִיל פּוֹתֵחַ" : "צְלִיל סוֹגֵר";
+    const verb = isFirst ? "מַתְחִילָה" : "נִגְמֶרֶת";
+    const getL = isFirst ? firstLetter : lastLetter;
     let score = 0, round = 0, total = 8;
     function next() {
-      if (round >= total) return endGame("צְלִיל פּוֹתֵחַ", score, Math.max(3, score * 2));
+      if (round >= total) return endGame(title, score, Math.max(3, score * 2));
       round++;
-      const shuffled = window.WORDS.slice().sort(() => Math.random() - .5);
+      const sh = window.WORDS.slice().sort(() => Math.random() - .5);
       const chosen = [], used = new Set();
-      for (const w of shuffled) { const L = firstLetter(w.w); if (!used.has(L)) { used.add(L); chosen.push({ w: w.w, emoji: w.emoji, L }); } if (chosen.length === 3) break; }
+      for (const w of sh) { const L = getL(w.w); if (L && !used.has(L)) { used.add(L); chosen.push({ w: w.w, emoji: w.emoji, L }); } if (chosen.length === 3) break; }
       const target = chosen[Math.floor(Math.random() * chosen.length)];
       const tl = window.LETTERS.find(l => l.ch === target.L);
       UI.show(`<div class="game">
         <div class="game-top"><span>${round}/${total}</span><span>✨ <b>${score}</b></span></div>
-        <p class="hint">${g("אֵיזוֹ מִלָּה מַתְחִילָה בַּצְּלִיל הַזֶּה?", "אֵיזוֹ מִלָּה מַתְחִילָה בַּצְּלִיל הַזֶּה?")}</p>
+        <p class="hint">${g("אֵיזוֹ מִלָּה " + verb + " בַּצְּלִיל הַזֶּה?", "אֵיזוֹ מִלָּה " + verb + " בַּצְּלִיל הַזֶּה?")}</p>
         <button class="phon-target nikud" id="pt">${target.L} <small>🔊</small></button>
         <div class="emoji-options">${chosen.map(c => `<button class="emoji-opt" data-ok="${c.L === target.L}">${c.emoji}</button>`).join("")}</div>
         <button class="btn ghost" onclick="App.playground()">סִיּוּם</button>
@@ -472,6 +488,105 @@ window.App = (function () {
       });
     }
     next();
+  }
+
+  /* ספירת הברות (בהשראת "בהצלחה בכיתה א'") */
+  const SYL_WORDS = [
+    { w: "דָּג", emoji: "🐟", n: 1 }, { w: "עֵץ", emoji: "🌳", n: 1 }, { w: "פִּיל", emoji: "🐘", n: 1 },
+    { w: "יָד", emoji: "✋", n: 1 }, { w: "אֵשׁ", emoji: "🔥", n: 1 },
+    { w: "אַבָּא", emoji: "👨", n: 2 }, { w: "שֶׁמֶשׁ", emoji: "☀️", n: 2 }, { w: "כֶּלֶב", emoji: "🐶", n: 2 },
+    { w: "בַּיִת", emoji: "🏠", n: 2 }, { w: "פַּרְפַּר", emoji: "🦋", n: 2 }, { w: "צִפּוֹר", emoji: "🐦", n: 2 },
+    { w: "סֵפֶר", emoji: "📖", n: 2 }, { w: "חָתוּל", emoji: "🐱", n: 2 }, { w: "פֶּרַח", emoji: "🌸", n: 2 },
+    { w: "מְכוֹנִית", emoji: "🚗", n: 3 }, { w: "רַכֶּבֶת", emoji: "🚂", n: 3 }, { w: "תַּפּוּחַ", emoji: "🍎", n: 3 },
+    { w: "בָּנָנָה", emoji: "🍌", n: 3 }, { w: "שׁוֹקוֹלָד", emoji: "🍫", n: 3 }
+  ];
+  function gameSyllables() {
+    let score = 0, round = 0, total = 8;
+    function next() {
+      if (round >= total) return endGame("סְפִירַת הֲבָרוֹת", score, Math.max(3, score * 2));
+      round++;
+      const w = SYL_WORDS[Math.floor(Math.random() * SYL_WORDS.length)];
+      UI.show(`<div class="game">
+        <div class="game-top"><span>${round}/${total}</span><span>✨ <b>${score}</b></span></div>
+        <button class="speak-big" id="hw">🔊 ${g("שְׁמַע", "שִׁמְעִי")}</button>
+        <div class="syl-word">${w.emoji}<div class="big-word nikud">${w.w}</div></div>
+        <p class="hint">${g("כַּמָּה הֲבָרוֹת בַּמִּלָּה? (טְפֹחַ פַּעַם לְכָל הֲבָרָה)", "כַּמָּה הֲבָרוֹת בַּמִּלָּה? (טִפְחִי פַּעַם לְכָל הֲבָרָה)")}</p>
+        <div class="syl-nums">${[1, 2, 3].map(n => `<button class="syl-num" data-n="${n}">${n}</button>`).join("")}</div>
+        <button class="btn ghost" onclick="App.playground()">סִיּוּם</button>
+      </div>`);
+      document.getElementById("hw").onclick = () => Speech.say(w.w); Speech.say(w.w);
+      UI.screen().querySelectorAll(".syl-num").forEach(b => b.onclick = () => {
+        if (+b.dataset.n === w.n) { b.classList.add("correct"); score++; UI.chime(true); setTimeout(next, 650); }
+        else { b.classList.add("wrong"); UI.chime(false); setTimeout(() => b.classList.remove("wrong"), 400); }
+      });
+    }
+    next();
+  }
+
+  /* כתיבת אותיות — trace באצבע (בהשראת "הכנה לכיתה א'") */
+  function gameTrace() {
+    const letters = window.LETTERS;
+    let idx = 0;
+    function render() {
+      const l = letters[idx];
+      UI.show(`${UI.topbar()}
+        <div class="trace-view">
+          <button class="back" onclick="App.playground()">→ חֲזָרָה</button>
+          <h2>✍️ כְּתִיבַת אוֹתִיּוֹת</h2>
+          <button class="speak-mini" id="sayL">🔊 ${l.name}</button>
+          <p class="hint">${g("עֲקֹב עַל הָאוֹת עִם הָאֶצְבַּע, וְאָז בְּדֹק", "עִקְבִי עַל הָאוֹת עִם הָאֶצְבַּע, וְאָז בִּדְקִי")}</p>
+          <div class="trace-stage">
+            <canvas id="tg" class="trace-canvas" width="300" height="300"></canvas>
+            <canvas id="tc" class="trace-canvas draw" width="300" height="300"></canvas>
+          </div>
+          <div class="trace-actions">
+            <button class="btn" id="clr">🧽 נַקֵּה</button>
+            <button class="btn primary" id="chk">בְּדֹק ✓</button>
+            <button class="btn ghost" id="nxt">הַבָּא ←</button>
+          </div>
+        </div>`);
+      Speech.say(l.name);
+      document.getElementById("sayL").onclick = () => Speech.say(l.name);
+      const guide = document.getElementById("tg"), draw = document.getElementById("tc");
+      drawGuideLetter(guide.getContext("2d"), l.ch, 300, 300, "#e7dcc4");
+      setupTrace(draw);
+      document.getElementById("clr").onclick = () => draw.getContext("2d").clearRect(0, 0, 300, 300);
+      document.getElementById("chk").onclick = () => checkTrace(draw, l.ch);
+      document.getElementById("nxt").onclick = () => { idx = (idx + 1) % letters.length; render(); };
+    }
+    render();
+  }
+  function drawGuideLetter(ctx, ch, W, H, color) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = color; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = `700 ${Math.floor(H * 0.78)}px "Frank Ruhl Libre","David Libre",serif`;
+    ctx.fillText(ch, W / 2, H * 0.52);
+  }
+  function setupTrace(canvas) {
+    const W = canvas.width, H = canvas.height, ctx = canvas.getContext("2d");
+    ctx.lineWidth = 24; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#f97e16";
+    let drawing = false;
+    const pos = e => { const r = canvas.getBoundingClientRect(); const t = e.touches ? e.touches[0] : e; return { x: (t.clientX - r.left) * (W / r.width), y: (t.clientY - r.top) * (H / r.height) }; };
+    canvas.addEventListener("pointerdown", e => { drawing = true; const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); e.preventDefault(); });
+    canvas.addEventListener("pointermove", e => { if (!drawing) return; const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); });
+    window.addEventListener("pointerup", () => { drawing = false; });
+  }
+  function checkTrace(canvas, ch) {
+    const W = canvas.width, H = canvas.height;
+    const drawn = canvas.getContext("2d").getImageData(0, 0, W, H).data;
+    const off = document.createElement("canvas"); off.width = W; off.height = H;
+    drawGuideLetter(off.getContext("2d"), ch, W, H, "#000");
+    const mask = off.getContext("2d").getImageData(0, 0, W, H).data;
+    let total = 0, covered = 0;
+    for (let i = 3; i < mask.length; i += 4) { if (mask[i] > 40) { total++; if (drawn[i] > 40) covered++; } }
+    const pct = total ? covered / total : 0;
+    if (pct >= 0.4) {
+      UI.chime(true); UI.sparkle(); State.addLight(4);
+      UI.toast(g("יָפֶה מְאֹד! כָּתַבְתָּ אֶת הָאוֹת ✍️", "יָפֶה מְאֹד! כָּתַבְתְּ אֶת הָאוֹת ✍️"));
+    } else {
+      UI.chime(false);
+      UI.toast(g("כִּמְעַט! נַסֵּה לַעֲקֹב עַל כָּל הָאוֹת", "כִּמְעַט! נַסִּי לַעֲקֹב עַל כָּל הָאוֹת"));
+    }
   }
 
   /* משחק 1 — ציד אותיות (30 שניות) */
@@ -583,7 +698,8 @@ window.App = (function () {
   return { boot, go, home, onboarding, openWorld, openActivity, finishActivity,
            realWorld, doRealWorld, achievements, parent, confirmReset,
            shop, buyItem, equipItem, chest, claimMission,
-           playground, gameWheel, gameOpeningSound, gameLetterHunt, gameWordBubbles, album,
+           playground, gameWheel, gameOpeningSound, gameClosingSound, gameSyllables, gameTrace,
+           gameLetterHunt, gameWordBubbles, album,
            parshaChallenge, completeParsha };
 })();
 

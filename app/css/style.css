@@ -389,6 +389,23 @@ h2,h3{font-family:var(--font-display);letter-spacing:-.2px}
 .phon-target{font-family:var(--font-read);font-size:80px;border:none;background:#fff;border-radius:24px;
   box-shadow:var(--shadow);padding:6px 36px;cursor:pointer;color:var(--ink2);margin:8px 0 16px}
 .phon-target small{font-size:28px}
+/* ספירת הברות */
+.syl-word{margin:6px 0 4px;font-size:64px}
+.syl-word .big-word{margin:6px 0}
+.syl-nums{display:flex;gap:14px;justify-content:center;margin:10px 0}
+.syl-num{width:80px;height:80px;border:3px solid #eee;background:#fff;border-radius:20px;font-size:36px;
+  font-weight:800;color:var(--ink2);cursor:pointer;font-family:inherit}
+.syl-num:active{transform:scale(.92)}
+.syl-num.correct{border-color:var(--ok);background:var(--ok-l)}
+.syl-num.wrong{border-color:var(--bad);background:#fde7e3;animation:shake .3s}
+/* כתיבת אותיות (trace) */
+.trace-view{text-align:center}
+.trace-view h2{font-size:24px;margin:4px 0}
+.trace-stage{position:relative;width:300px;height:300px;margin:10px auto;background:#fff;border-radius:24px;
+  box-shadow:var(--shadow);overflow:hidden}
+.trace-canvas{position:absolute;inset:0;width:300px;height:300px}
+.trace-canvas.draw{touch-action:none;cursor:crosshair}
+.trace-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px}
 .bubble-target{font-size:90px;margin:10px 0}
 .bubbles{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
 .bubble-btn{font-family:"Frank Ruhl Libre",serif;font-size:28px;border:3px solid #eee;background:#fff;border-radius:40px;

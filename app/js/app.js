@@ -483,6 +483,7 @@ window.App = (function () {
         document.getElementById("flbottom").innerHTML =
           `<p class="hint">${g("קְרָא בְּקוֹל בָּרוּר וְזוֹרֵם. סִיַּמְתָּ?", "קִרְאִי בְּקוֹל בָּרוּר וְזוֹרֵם. סִיַּמְתְּ?")}</p>
            <button class="btn primary big" id="didread">⭐ ${g("קָרָאתִי!", "קָרָאתִי!")}</button>
+           <button class="btn" id="fltimed">⏱️ ${g("מְדִידַת קֶצֶב", "מְדִידַת קֶצֶב")}</button>
            <button class="btn ghost" id="flrec">🔴 ${g("הַקְלֵט אֶת עַצְמְךָ", "הַקְלִיטִי אֶת עַצְמֵךְ")}</button>
            <div id="flrecbox"></div>`;
         document.getElementById("didread").onclick = () => {
@@ -490,6 +491,7 @@ window.App = (function () {
           if (stars >= 3) master();
           else UI.toast(g("יָפֶה! עוֹד פַּעַם וְתִהְיֶה אַלּוּף שֶׁטֶף 🌟", "יָפֶה! עוֹד פַּעַם וְתִהְיִי אַלּוּפַת שֶׁטֶף 🌟"));
         };
+        document.getElementById("fltimed").onclick = () => startTimedRead(p);
         wireRec(p);
       };
       document.getElementById("flnext").onclick = () => { Speech.stop(); pi = (pi + 1) % passages.length; render(); };
@@ -518,6 +520,41 @@ window.App = (function () {
             <p class="ok">${g("נִשְׁמַעְתָּ זוֹרֵם! 🌟", "נִשְׁמַעְתְּ זוֹרֶמֶת! 🌟")}</p>`;
         }
       };
+    }
+    function startTimedRead(p) {
+      const wc = p.lines.join(" ").split(/\s+/).filter(Boolean).length;
+      const box = document.getElementById("flbottom");
+      box.innerHTML = `<div class="timed-box">
+        <p class="hint">${g("קְרָא אֶת כָּל הַקֶּטַע בְּקוֹל בָּרוּר. לַחֵץ הַתְחֵל, וּכְשֶׁתְּסַיֵּם — לַחֵץ סִיַּמְתִּי.", "קִרְאִי אֶת כָּל הַקֶּטַע בְּקוֹל בָּרוּר. לַחֲצִי הַתְחֵל, וּכְשֶׁתְּסַיְּמִי — לַחֲצִי סִיַּמְתִּי.")}</p>
+        <button class="btn primary big" id="tstart">▶️ ${g("הַתְחֵל לִקְרֹא", "הַתְחִילִי לִקְרֹא")}</button></div>`;
+      document.getElementById("tstart").onclick = () => {
+        const startT = Date.now();
+        const b = document.getElementById("tstart");
+        b.className = "btn primary big recording"; b.textContent = g("⏹️ סִיַּמְתִּי לִקְרֹא!", "⏹️ סִיַּמְתִּי לִקְרֹא!");
+        b.onclick = () => {
+          const sec = Math.max(1, (Date.now() - startT) / 1000);
+          const wpm = Math.round(wc / sec * 60);
+          showWpm(wpm, p);
+        };
+      };
+    }
+    function showWpm(wpm, p) {
+      const gr = window.gradeById(State.profile && State.profile.grade);
+      const target = gr && gr.wpm;
+      const min = target ? parseInt(target.split("-")[0], 10) : null;
+      let fb, reward;
+      if (!min) { fb = g("קָרָאתָ יָפֶה! 🌟", "קָרָאתְ יָפֶה! 🌟"); reward = 4; }
+      else if (wpm >= min) { fb = g("מְצֻיָּן! הִגַּעְתָּ לַיַּעַד שֶׁל הַכִּתָּה! 🌟", "מְצֻיֶּנֶת! הִגַּעְתְּ לַיַּעַד שֶׁל הַכִּתָּה! 🌟"); reward = 8; }
+      else if (wpm >= min * 0.6) { fb = g("יָפֶה מְאֹד! כִּמְעַט בַּיַּעַד 💪", "יָפֶה מְאֹד! כִּמְעַט בַּיַּעַד 💪"); reward = 5; }
+      else { fb = g("תַּמְשִׁיךְ לְתַרְגֵּל וְהַקֶּצֶב יַעֲלֶה 📈", "תַּמְשִׁיכִי לְתַרְגֵּל וְהַקֶּצֶב יַעֲלֶה 📈"); reward = 3; }
+      State.addLight(reward); UI.chime(true); if (wpm >= (min || 0)) UI.sparkle();
+      document.getElementById("flbottom").innerHTML = `<div class="wpm-result">
+        <div class="wpm-big">${wpm}</div><div class="wpm-unit">מִלִּים לְדַקָּה</div>
+        ${target ? `<div class="wpm-target">🎯 יַעַד הַכִּתָּה: ${target} מל"ד</div>` : ""}
+        <div class="wpm-fb">${fb}</div>
+        <div class="wpm-note">${g("זְכֹר: קְרִיאָה טוֹבָה הִיא לֹא רַק מְהִירָה — אֶלָּא בְּרוּרָה וְעִם הַרְגָּשָׁה.", "זִכְרִי: קְרִיאָה טוֹבָה הִיא לֹא רַק מְהִירָה — אֶלָּא בְּרוּרָה וְעִם הַרְגָּשָׁה.")}</div>
+        <button class="btn primary" id="tagain">⏱️ ${g("עוֹד מְדִידָה", "עוֹד מְדִידָה")}</button></div>`;
+      document.getElementById("tagain").onclick = () => startTimedRead(p);
     }
     render();
   }

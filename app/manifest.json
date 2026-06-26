@@ -1,0 +1,16 @@
+{
+  "name": "אותיות של אור",
+  "short_name": "אותיות של אור",
+  "description": "אפליקציה שמלמדת ילדים לאהוב לקרוא עברית — עם ערכים יהודיים.",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff8ec",
+  "theme_color": "#ff8a1f",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

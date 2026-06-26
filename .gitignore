@@ -1,0 +1,15 @@
+# Vercel
+.vercel/
+app/.vercel/
+
+# סודות — אסור לעלות
+*.token
+vercel-token*
+*.key
+.env
+.env.*
+
+# מערכת
+.DS_Store
+Thumbs.db
+node_modules/

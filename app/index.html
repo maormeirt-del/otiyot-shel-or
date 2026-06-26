@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ff8a1f">
+  <title>אוֹתִיּוֹת שֶׁל אוֹר</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icon.svg">
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <main id="screen"><!-- מסכים נטענים כאן --></main>
+  </div>
+  <div id="fx" aria-hidden="true"></div>
+
+  <!-- נתונים (כתובים מראש, אפס תלות) -->
+  <script src="data/letters.js"></script>
+  <script src="data/words.js"></script>
+  <script src="data/stories.js"></script>
+  <script src="data/stories-extra.js"></script>
+  <script src="data/stories-extra2.js"></script>
+  <script src="data/shop.js"></script>
+  <script src="data/curriculum.js"></script>
+  <!-- מנוע -->
+  <script src="js/state.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/activities.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      // רענון אוטומטי כשגרסה חדשה משתלטת — כדי שעדכונים תמיד יגיעו
+      let _reloading = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (_reloading) return; _reloading = true; location.reload();
+      });
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+    }
+  </script>
+</body>
+</html>

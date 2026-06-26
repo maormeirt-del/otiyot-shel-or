@@ -64,6 +64,7 @@ window.App = (function () {
         <div class="home-actions">
           <button class="tile" onclick="App.go('shop')"><span>🛍️</span>חֲנוּת</button>
           <button class="tile" onclick="App.room()"><span>🏠</span>חֶדֶר נֵרִי</button>
+          <button class="tile" onclick="App.coloringStudio()"><span>🎨</span>צְבִיעָה</button>
           <button class="tile" onclick="App.playground()"><span>🕹️</span>מִשְׂחָקִים</button>
           <button class="tile" onclick="App.album()"><span>📔</span>אַלְבּוֹם</button>
           <button class="tile" onclick="App.realWorld()"><span>🌍</span>עוֹלָם</button>
@@ -814,6 +815,55 @@ window.App = (function () {
     const bar = document.querySelector(".happy-track span"); if (bar) bar.style.width = (State.progress.happy || 60) + "%";
   }
 
+  /* ====================== סְטוּדִיוֹ צְבִיעָה ====================== */
+  const PALETTE = ["#ff5a5a", "#ff9f43", "#ffd93d", "#6bcb77", "#4d96ff", "#9b5de5",
+                   "#ff6fae", "#8d5524", "#2bb88a", "#333333", "#a0e7e5", "#ffffff"];
+  function coloringStudio() {
+    UI.show(`${UI.topbar()}
+      <div class="coloring-studio">
+        <button class="back" onclick="App.go('home')">→ חֲזָרָה</button>
+        <h2>🎨 סְטוּדִיוֹ צְבִיעָה</h2>
+        <p class="hint">${g("בְּחַר תְּמוּנָה וְצָבַע אוֹתָהּ בְּלַחִיצָה!", "בַּחֲרִי תְּמוּנָה וְצִבְעִי אוֹתָהּ בְּלַחִיצָה!")}</p>
+        <div class="coloring-grid">
+          ${window.COLORING.map(p => `<button class="coloring-card ${State.isDone('color-' + p.id) ? 'done' : ''}" onclick="App.colorPic('${p.id}')">
+            <div class="cthumb">${p.svg}</div><div class="cname nikud">${p.name}</div></button>`).join("")}
+        </div>
+      </div>`);
+  }
+  function colorPic(id) {
+    const pic = window.COLORING.find(p => p.id === id);
+    let sel = PALETTE[0];
+    UI.show(`${UI.topbar()}
+      <div class="color-view">
+        <button class="back" onclick="App.coloringStudio()">→ חֲזָרָה לַסְּטוּדִיוֹ</button>
+        <button class="color-name nikud" onclick="Speech.say('${pic.word}')">${pic.name} 🔊</button>
+        <div class="color-stage" id="cstage">${pic.svg}</div>
+        <div class="palette" id="pal">
+          ${PALETTE.map((c, i) => `<button class="swatch ${i === 0 ? 'sel' : ''}" style="background:${c}" data-c="${c}"></button>`).join("")}
+        </div>
+        <div class="color-actions">
+          <button class="btn" id="cclear">🧽 ${g("נַקֵּה", "נַקִּי")}</button>
+          <button class="btn primary" id="cdone">${g("סִיַּמְתִּי! ✓", "סִיַּמְתִּי! ✓")}</button>
+        </div>
+      </div>`);
+    const stage = document.getElementById("cstage");
+    function wirePaint() { stage.querySelectorAll(".fillable").forEach(el => el.onclick = () => { el.setAttribute("fill", sel); UI.chime(true); }); }
+    wirePaint();
+    document.getElementById("pal").querySelectorAll(".swatch").forEach(b => b.onclick = () => {
+      sel = b.dataset.c;
+      document.querySelectorAll(".swatch").forEach(x => x.classList.remove("sel"));
+      b.classList.add("sel");
+    });
+    document.getElementById("cclear").onclick = () => stage.querySelectorAll(".fillable").forEach(el => el.setAttribute("fill", "#fff"));
+    document.getElementById("cdone").onclick = () => {
+      const first = State.markDone("color-" + id, 8);
+      UI.sparkle(); UI.chime(true);
+      UI.toast(g("יָפֶה מְאֹד! צַיָּר אֲמִתִּי 🎨", "יָפֶה מְאֹד! צַיֶּרֶת אֲמִתִּית 🎨"));
+      setTimeout(() => UI.celebrateMilestones(), 300);
+      coloringStudio();
+    };
+  }
+
   /* ====================== ראוטר ====================== */
   function go(where) {
     Speech.stop();
@@ -821,12 +871,13 @@ window.App = (function () {
     else if (where === "parent") parent();
     else if (where === "shop") shop();
     else if (where === "room") room();
+    else if (where === "coloring") coloringStudio();
     else home();
   }
 
   return { boot, go, home, onboarding, openWorld, openActivity, finishActivity,
            realWorld, doRealWorld, achievements, parent, confirmReset,
-           shop, buyItem, equipItem, chest, claimMission, room, careNeri,
+           shop, buyItem, equipItem, chest, claimMission, room, careNeri, coloringStudio, colorPic,
            playground, gameFluency, gameWheel, gameOpeningSound, gameClosingSound, gameSyllables, gameTrace,
            gameLetterHunt, gameWordBubbles, album,
            parshaChallenge, completeParsha };

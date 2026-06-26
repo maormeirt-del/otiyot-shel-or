@@ -57,6 +57,7 @@ window.App = (function () {
           </div>
         </div>
         ${missionCard()}
+        ${parshaCard()}
         ${State.chestReady() ? `<button class="chest-banner" onclick="App.chest()">🎁 תִּיבַת הָאוֹצָר הַיּוֹמִית מְחַכָּה! לַחֵץ לִפְתֹּחַ</button>` : ""}
         <div class="map-title">🗺️ מַסַּע הָאוֹר <span class="skip-hint">כָּל הַשְּׁלַבִּים פְּתוּחִים — בְּחַר לְאָן לִקְפֹּץ!</span></div>
         ${buildAdventureMap()}
@@ -88,6 +89,47 @@ window.App = (function () {
   function claimMission() {
     const r = State.claimMission();
     if (r) { UI.sparkle(); UI.chime(true); UI.toast(`+${r} אוֹר! מְשִׂימָה יוֹמִית ✓`); home(); setTimeout(() => UI.celebrateMilestones(), 300); }
+  }
+
+  /* --- אתגר הפרשה (שבועי) --- */
+  function parshaCard() {
+    const p = window.PARSHA.current();
+    const done = State.isDone("parsha-" + p.label);
+    return `<button class="parsha-banner ${done ? 'done' : ''}" onclick="App.parshaChallenge()">
+      <span class="pb-icon">📜</span>
+      <span class="pb-text"><b>אֶתְגַּר הַשָּׁבוּעַ</b><br><span class="nikud">פָּרָשַׁת ${p.label}</span></span>
+      <span class="pb-go">${done ? '✓' : '←'}</span></button>`;
+  }
+  function parshaChallenge() {
+    const p = window.PARSHA.current(), c = window.PARSHA.challengeFor(p.label);
+    const done = State.isDone("parsha-" + p.label);
+    UI.show(`${UI.topbar()}
+      <div class="parsha-view">
+        <button class="back" onclick="App.go('home')">→ חֲזָרָה</button>
+        <div class="parsha-card">
+          <div class="parsha-title">📜 פָּרָשַׁת ${p.label}</div>
+          <div class="parsha-theme nikud">${c.theme}</div>
+          <div class="parsha-midda">מִדָּה: ${c.value}</div>
+          <div class="parsha-wordbox">
+            <div class="hint">${g("הַמִּלָּה שֶׁל הַשָּׁבוּעַ — הַקֵּשׁ לִשְׁמֹעַ:", "הַמִּלָּה שֶׁל הַשָּׁבוּעַ — הַקִּישִׁי לִשְׁמֹעַ:")}</div>
+            <button class="parsha-word nikud" onclick="Speech.say('${c.word}')">${c.word} 🔊</button>
+          </div>
+          <div class="parsha-task">
+            <div class="pt-label">🎯 הָאֶתְגָּר שֶׁלְּךָ:</div>
+            <div class="nikud">${c.task}</div>
+          </div>
+          ${done
+            ? `<div class="parsha-doneflag">✓ ${g("הִשְׁלַמְתָּ אֶת אֶתְגַּר הַשָּׁבוּעַ!", "הִשְׁלַמְתְּ אֶת אֶתְגַּר הַשָּׁבוּעַ!")}</div>`
+            : `<button class="btn primary big" onclick="App.completeParsha('${p.label}')">${g("עָשִׂיתִי אֶת הָאֶתְגָּר! ✓", "עָשִׂיתִי אֶת הָאֶתְגָּר! ✓")}</button>`}
+        </div>
+      </div>`);
+  }
+  function completeParsha(label) {
+    const first = State.markDone("parsha-" + label, 15);
+    UI.sparkle(); UI.chime(true);
+    if (first) setTimeout(() => Speech.say(`כל הכבוד ${UI.name()}!`), 350);
+    parshaChallenge();
+    setTimeout(() => UI.celebrateMilestones(), 300);
   }
 
   /* --- מפת ההרפתקה (SVG מתפתל) --- */
@@ -350,12 +392,55 @@ window.App = (function () {
         <h2>🕹️ מִגְרַשׁ הַמִּשְׂחָקִים</h2>
         <p class="hint nikud">${g("מִשְׂחָקִים מְהִירִים שֶׁמַּדְלִיקִים אוֹר! כָּל מִשְׂחָק = אוֹר.", "מִשְׂחָקִים מְהִירִים שֶׁמַּדְלִיקִים אוֹר! כָּל מִשְׂחָק = אוֹר.")}</p>
         <div class="pg-list">
+          <button class="pg-card" onclick="App.gameWheel()"><span class="pg-emoji">🎡</span>
+            <span><b>גַּלְגַּל הָאוֹתִיּוֹת</b><br><small>אוֹת + נִקּוּד = הֲבָרָה. שַׁנֵּה וְשָׁמַע!</small></span></button>
           <button class="pg-card" onclick="App.gameLetterHunt()"><span class="pg-emoji">🎯</span>
             <span><b>צַיָּד הָאוֹתִיּוֹת</b><br><small>הַקֵּשׁ עַל הָאוֹת הַנְּכוֹנָה מַהֵר!</small></span></button>
           <button class="pg-card" onclick="App.gameWordBubbles()"><span class="pg-emoji">🫧</span>
             <span><b>בּוּעוֹת מִלִּים</b><br><small>אֵיזוֹ מִלָּה מַתְאִימָה לַתְּמוּנָה?</small></span></button>
         </div>
       </div>`);
+  }
+
+  /* גלגל האותיות — אות + ניקוד = הברה (בהשראת Alef Bet Wheel) */
+  function gameWheel() {
+    const letters = window.LETTERS;
+    const nikud = window.NIKUD.filter(n => n.mark !== "ְ"); // 7 תנועות
+    let li = 1, ni = 0;
+    const heard = new Set();
+    const syll = () => letters[li].ch + nikud[ni].mark;
+    const say = () => Speech.say(syll(), { keepNikud: true });
+    function track() { heard.add(syll()); if (heard.size > 0 && heard.size % 6 === 0) { State.addLight(3); UI.toast("✨ +3 אוֹר עַל הַחֲקִירָה!"); } }
+    function render() {
+      UI.show(`${UI.topbar()}
+        <div class="wheel-view">
+          <button class="back" onclick="App.playground()">→ חֲזָרָה</button>
+          <h2>🎡 גַּלְגַּל הָאוֹתִיּוֹת</h2>
+          <p class="hint">${g("שַׁנֵּה אוֹת וְנִקּוּד — וְשָׁמַע אֵיךְ זֶה נִשְׁמָע!", "שַׁנִּי אוֹת וְנִקּוּד — וְשִׁמְעִי אֵיךְ זֶה נִשְׁמָע!")}</p>
+          <div class="wheel-display nikud">${syll()}</div>
+          <button class="speak-big" id="hear">🔊 ${g("שְׁמַע", "שִׁמְעִי")}</button>
+          <div class="wheel-row">
+            <button class="wheel-arrow" data-a="l-">▶</button>
+            <div class="wheel-cur"><span class="wc-big nikud">${letters[li].ch}</span><small>${letters[li].name}</small></div>
+            <button class="wheel-arrow" data-a="l+">◀</button>
+          </div>
+          <div class="wheel-row">
+            <button class="wheel-arrow" data-a="n-">▶</button>
+            <div class="wheel-cur"><span class="wc-big nikud">${nikud[ni].demo}</span><small>${nikud[ni].name}</small></div>
+            <button class="wheel-arrow" data-a="n+">◀</button>
+          </div>
+        </div>`);
+      document.getElementById("hear").onclick = say;
+      UI.screen().querySelectorAll(".wheel-arrow").forEach(b => b.onclick = () => {
+        const a = b.dataset.a;
+        if (a === "l+") li = (li + 1) % letters.length;
+        if (a === "l-") li = (li - 1 + letters.length) % letters.length;
+        if (a === "n+") ni = (ni + 1) % nikud.length;
+        if (a === "n-") ni = (ni - 1 + nikud.length) % nikud.length;
+        track(); render(); say();
+      });
+    }
+    render(); say();
   }
 
   /* משחק 1 — ציד אותיות (30 שניות) */
@@ -467,7 +552,8 @@ window.App = (function () {
   return { boot, go, home, onboarding, openWorld, openActivity, finishActivity,
            realWorld, doRealWorld, achievements, parent, confirmReset,
            shop, buyItem, equipItem, chest, claimMission,
-           playground, gameLetterHunt, gameWordBubbles, album };
+           playground, gameWheel, gameLetterHunt, gameWordBubbles, album,
+           parshaChallenge, completeParsha };
 })();
 
 window.addEventListener("DOMContentLoaded", () => App.boot());

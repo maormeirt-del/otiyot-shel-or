@@ -414,6 +414,24 @@ h2,h3{font-family:var(--font-display);letter-spacing:-.2px}
 @keyframes popz{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
 .bubble-btn.miss{border-color:var(--bad);background:#fde7e3;animation:shake .3s}
 
+/* ---------- קריאה שוטפת ---------- */
+.pg-card.hot{background:linear-gradient(135deg,#fff3d4,#ffe3a8);border:2px solid var(--gold)}
+.fluency-view{text-align:center}
+.fluency-view h2{font-size:24px;margin:4px 0}
+.fl-title{font-family:var(--font-display);font-size:22px;color:var(--ink2);margin:2px 0 6px}
+.fl-stars{font-size:30px;color:#e6dcc6;margin-bottom:8px;letter-spacing:4px}
+.fl-star.on{color:var(--gold-d)}
+.fl-text{background:#fff;border-radius:var(--r);padding:22px 18px;box-shadow:var(--shadow);
+  font-size:30px;line-height:2;margin-bottom:14px}
+.fl-line{margin:6px 0}
+.fl-word{padding:1px 4px;border-radius:8px;transition:background .12s,color .12s}
+.fl-word.lit{background:var(--amber);color:#5a3500;transform:scale(1.05);display:inline-block}
+.fl-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+#flbottom{margin-top:12px}
+#flbottom .btn.big{width:100%;max-width:300px;margin:6px auto 0}
+#flrecbox audio{width:100%;margin-top:10px}
+#flnext{margin-top:14px}
+
 /* ---------- גלגל האותיות ---------- */
 .wheel-view{text-align:center}
 .wheel-view h2{font-size:24px;margin:4px 0}

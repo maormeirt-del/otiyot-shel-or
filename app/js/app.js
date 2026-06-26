@@ -392,6 +392,8 @@ window.App = (function () {
         <h2>🕹️ מִגְרַשׁ הַמִּשְׂחָקִים</h2>
         <p class="hint nikud">${g("מִשְׂחָקִים מְהִירִים שֶׁמַּדְלִיקִים אוֹר! כָּל מִשְׂחָק = אוֹר.", "מִשְׂחָקִים מְהִירִים שֶׁמַּדְלִיקִים אוֹר! כָּל מִשְׂחָק = אוֹר.")}</p>
         <div class="pg-list">
+          <button class="pg-card hot" onclick="App.gameFluency()"><span class="pg-emoji">🎵</span>
+            <span><b>קְרִיאָה שׁוֹטֶפֶת</b><br><small>קְרָא אִתִּי בְּקֶצֶב — וְתִזְרֹם!</small></span></button>
           <button class="pg-card" onclick="App.gameWheel()"><span class="pg-emoji">🎡</span>
             <span><b>גַּלְגַּל הָאוֹתִיּוֹת</b><br><small>אוֹת + נִקּוּד = הֲבָרָה. שַׁנֵּה וְשָׁמַע!</small></span></button>
           <button class="pg-card" onclick="App.gameTrace()"><span class="pg-emoji">✍️</span>
@@ -408,6 +410,85 @@ window.App = (function () {
             <span><b>בּוּעוֹת מִלִּים</b><br><small>אֵיזוֹ מִלָּה מַתְאִימָה לַתְּמוּנָה?</small></span></button>
         </div>
       </div>`);
+  }
+
+  /* קריאה שוטפת — קריוקי + קריאה חוזרת + הקלטה (בונה שטף) */
+  function gameFluency() {
+    const passages = window.FLUENCY;
+    let pi = 0;
+    for (let i = 0; i < passages.length; i++) { if (!State.isDone("fluency-" + passages[i].id)) { pi = i; break; } }
+    let stars = 0;
+    function render() {
+      stars = 0;
+      const p = passages[pi];
+      let wi = 0;
+      const linesHtml = p.lines.map(line =>
+        `<div class="fl-line nikud">${line.split(" ").map(w => `<span class="fl-word" data-i="${wi++}">${w}</span>`).join(" ")}</div>`
+      ).join("");
+      UI.show(`${UI.topbar()}
+        <div class="fluency-view">
+          <button class="back" onclick="App.playground()">→ חֲזָרָה</button>
+          <h2>🎵 קְרִיאָה שׁוֹטֶפֶת</h2>
+          <div class="fl-title nikud">${p.title}</div>
+          <div class="fl-stars" id="flstars">${starHtml(0)}</div>
+          <div class="fl-text" id="fltext">${linesHtml}</div>
+          <div class="fl-actions">
+            <button class="btn primary" id="along">🎵 ${g("קְרָא אִתִּי", "קִרְאִי אִתִּי")}</button>
+            <button class="btn" id="solo">🙋 ${g("עַכְשָׁו תּוֹרְךָ", "עַכְשָׁו תּוֹרֵךְ")}</button>
+          </div>
+          <div id="flbottom"></div>
+          <button class="btn ghost" id="flnext">פִּסְקָה אַחֶרֶת ←</button>
+        </div>`);
+      const words = () => UI.screen().querySelectorAll(".fl-word");
+      const fullText = p.lines.join(" ");
+      document.getElementById("along").onclick = () => {
+        words().forEach(w => w.classList.remove("lit"));
+        const ws = words();
+        Speech.sayHighlight(fullText,
+          idx => ws.forEach((w, k) => w.classList.toggle("lit", k === idx)),
+          () => ws.forEach(w => w.classList.remove("lit")));
+      };
+      document.getElementById("solo").onclick = () => {
+        Speech.stop(); words().forEach(w => w.classList.remove("lit"));
+        document.getElementById("flbottom").innerHTML =
+          `<p class="hint">${g("קְרָא בְּקוֹל בָּרוּר וְזוֹרֵם. סִיַּמְתָּ?", "קִרְאִי בְּקוֹל בָּרוּר וְזוֹרֵם. סִיַּמְתְּ?")}</p>
+           <button class="btn primary big" id="didread">⭐ ${g("קָרָאתִי!", "קָרָאתִי!")}</button>
+           <button class="btn ghost" id="flrec">🔴 ${g("הַקְלֵט אֶת עַצְמְךָ", "הַקְלִיטִי אֶת עַצְמֵךְ")}</button>
+           <div id="flrecbox"></div>`;
+        document.getElementById("didread").onclick = () => {
+          stars++; document.getElementById("flstars").innerHTML = starHtml(stars); UI.chime(true);
+          if (stars >= 3) master();
+          else UI.toast(g("יָפֶה! עוֹד פַּעַם וְתִהְיֶה אַלּוּף שֶׁטֶף 🌟", "יָפֶה! עוֹד פַּעַם וְתִהְיִי אַלּוּפַת שֶׁטֶף 🌟"));
+        };
+        wireRec(p);
+      };
+      document.getElementById("flnext").onclick = () => { Speech.stop(); pi = (pi + 1) % passages.length; render(); };
+    }
+    function master() {
+      const p = passages[pi];
+      State.markDone("fluency-" + p.id, 12);
+      UI.sparkle(); UI.chime(true);
+      setTimeout(() => Speech.say(`כל הכבוד ${UI.name()}! קראת בשטף!`), 350);
+      UI.toast(g("🏆 אַלּוּף שֶׁטֶף! קָרָאתָ 3 פְּעָמִים!", "🏆 אַלּוּפַת שֶׁטֶף! קָרָאתְ 3 פְּעָמִים!"));
+      setTimeout(() => UI.celebrateMilestones(), 300);
+      setTimeout(() => { pi = (pi + 1) % passages.length; render(); }, 1600);
+    }
+    function starHtml(n) { return [0, 1, 2].map(i => `<span class="fl-star ${i < n ? 'on' : ''}">★</span>`).join(""); }
+    function wireRec(p) {
+      const btn = document.getElementById("flrec"); if (!btn || !Recorder.supported()) { if (btn) btn.style.display = "none"; return; }
+      let recording = false;
+      btn.onclick = async () => {
+        if (!recording) { try { await Recorder.start(); recording = true; btn.textContent = "⏹️ עֲצֹר"; btn.classList.add("recording"); } catch (e) { UI.toast("אֵין מִיקְרוֹפוֹן"); } }
+        else {
+          const blob = await Recorder.stop(); recording = false; btn.textContent = "🔴 הַקְלֵט שׁוּב"; btn.classList.remove("recording");
+          RecStore.get("first-fl-" + p.id).then(f => { if (!f) RecStore.put("first-fl-" + p.id, blob); });
+          RecStore.put("last-fl-" + p.id, blob);
+          document.getElementById("flrecbox").innerHTML = `<audio controls src="${URL.createObjectURL(blob)}"></audio>
+            <p class="ok">${g("נִשְׁמַעְתָּ זוֹרֵם! 🌟", "נִשְׁמַעְתְּ זוֹרֶמֶת! 🌟")}</p>`;
+        }
+      };
+    }
+    render();
   }
 
   /* גלגל האותיות — אות + ניקוד = הברה (בהשראת Alef Bet Wheel) */
@@ -698,7 +779,7 @@ window.App = (function () {
   return { boot, go, home, onboarding, openWorld, openActivity, finishActivity,
            realWorld, doRealWorld, achievements, parent, confirmReset,
            shop, buyItem, equipItem, chest, claimMission,
-           playground, gameWheel, gameOpeningSound, gameClosingSound, gameSyllables, gameTrace,
+           playground, gameFluency, gameWheel, gameOpeningSound, gameClosingSound, gameSyllables, gameTrace,
            gameLetterHunt, gameWordBubbles, album,
            parshaChallenge, completeParsha };
 })();

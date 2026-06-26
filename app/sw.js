@@ -1,6 +1,6 @@
 /* Service Worker — network-first כדי שעדכונים תמיד יגיעו, עם fallback אופליין.
    אפס תלות חיצונית. */
-const CACHE = "aor-v5";
+const CACHE = "aor-v6";
 const ASSETS = [
   "./", "./index.html",
   "./css/style.css", "./fonts/fonts.css",
@@ -12,7 +12,7 @@ const ASSETS = [
   "./manifest.json", "./assets/icon.svg",
   "./data/letters.js", "./data/words.js", "./data/stories.js", "./data/stories-extra.js",
   "./data/stories-extra2.js", "./data/stories-extra3.js", "./data/shop.js",
-  "./data/parsha.js", "./data/curriculum.js",
+  "./data/parsha.js", "./data/fluency.js", "./data/curriculum.js",
   "./js/state.js", "./js/audio.js", "./js/ui.js", "./js/activities.js", "./js/app.js"
 ];
 self.addEventListener("install", e => {

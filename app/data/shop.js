@@ -10,7 +10,10 @@ window.SHOP = {
     { id: "c-green",   name: "יָרֹק",     cost: 30,  stops: ["#eaffe8", "#8fe87c", "#2eae5a"] },
     { id: "c-purple",  name: "סָגֹל",     cost: 45,  stops: ["#f6e8ff", "#c89cff", "#8a4fd6"] },
     { id: "c-pink",    name: "וָרֹד",     cost: 45,  stops: ["#ffe8f3", "#ff9cc8", "#e64f9a"] },
-    { id: "c-rainbow", name: "קֶשֶׁת",    cost: 120, stops: ["#ffd24a", "#7cc8ff", "#ff6fae"], rainbow: true }
+    { id: "c-rainbow", name: "קֶשֶׁת",    cost: 120, stops: ["#ffd24a", "#7cc8ff", "#ff6fae"], rainbow: true },
+    { id: "c-fire",    name: "אֵשׁ",     cost: 60,  stops: ["#fff0c0", "#ff8a3c", "#e2342f"] },
+    { id: "c-aqua",    name: "אַקְוָה",   cost: 60,  stops: ["#e8fffb", "#7cf0e0", "#16b0a0"] },
+    { id: "c-royal",   name: "מַלְכוּתִי", cost: 80,  stops: ["#fff0fb", "#d49cff", "#7a2fd6"] }
   ],
   /* כובעים — אימוג'י מעל הלהבה */
   hats: [
@@ -19,7 +22,13 @@ window.SHOP = {
     { id: "h-grad",   name: "כּוֹבַע סִיּוּם", cost: 50, emoji: "🎓" },
     { id: "h-party",  name: "כּוֹבַע מְסִבָּה", cost: 35, emoji: "🎉" },
     { id: "h-star",   name: "כּוֹכָב",      cost: 40,  emoji: "⭐" },
-    { id: "h-flower", name: "פֶּרַח",       cost: 30,  emoji: "🌸" }
+    { id: "h-flower", name: "פֶּרַח",       cost: 30,  emoji: "🌸" },
+    { id: "h-glasses", name: "מִשְׁקָפַיִם", cost: 30, emoji: "👓" },
+    { id: "h-bow",    name: "פַּפְיוֹן",    cost: 25,  emoji: "🎀" },
+    { id: "h-scarf",  name: "צָעִיף",       cost: 30,  emoji: "🧣" },
+    { id: "h-tophat", name: "מִגְבַּעַת",    cost: 45,  emoji: "🎩" },
+    { id: "h-cowboy", name: "כּוֹבַע בּוֹקֵר", cost: 45, emoji: "🤠" },
+    { id: "h-wings",  name: "כְּנָפַיִם",    cost: 75,  emoji: "🪽" }
   ],
   /* חברים — חיית מחמד קטנה ליד נֵרִי */
   pets: [
@@ -37,6 +46,32 @@ window.SHOP = {
     { id: "bg-sea",    name: "יָם",         cost: 50, css: "linear-gradient(160deg,#bdeaff,#7cc8ff 70%,#4fa8e6)" },
     { id: "bg-garden", name: "גַּן פּוֹרֵחַ", cost: 60, css: "linear-gradient(160deg,#eaffe0,#bdf0a0 70%,#8fd87c)" },
     { id: "bg-sunset", name: "שְׁקִיעָה",    cost: 60, css: "linear-gradient(160deg,#ffe9c0,#ffb36b 60%,#ff8a6b)" }
+  ],
+  /* חפצים שנֵרִי מחזיק */
+  props: [
+    { id: "pr-book",    name: "סֵפֶר",        cost: 25, emoji: "📖" },
+    { id: "pr-balloon", name: "בָּלוֹן",       cost: 25, emoji: "🎈" },
+    { id: "pr-ball",    name: "כַּדּוּר",      cost: 30, emoji: "⚽" },
+    { id: "pr-flower",  name: "פֶּרַח",        cost: 25, emoji: "🌷" },
+    { id: "pr-wand",    name: "שַׁרְבִיט קֶסֶם", cost: 55, emoji: "🪄" },
+    { id: "pr-flag",    name: "דֶּגֶל",        cost: 30, emoji: "🚩" },
+    { id: "pr-icecream",name: "גְּלִידָה",      cost: 30, emoji: "🍦" },
+    { id: "pr-teddy",   name: "דֻּבִּי",       cost: 45, emoji: "🧸" }
+  ],
+  /* רהיטים לחדר של נֵרִי — כל פריט שקונים מופיע בחדר */
+  furniture: [
+    { id: "fn-bed",    name: "מִטָּה",            cost: 40, emoji: "🛏️", pos: { bottom: "7%",  left: "6%"  } },
+    { id: "fn-table",  name: "שֻׁלְחָן",           cost: 35, emoji: "🪑", pos: { bottom: "7%",  right: "8%" } },
+    { id: "fn-shelf",  name: "כּוֹנְנִית סְפָרִים", cost: 50, emoji: "📚", pos: { top: "12%",   left: "7%"  } },
+    { id: "fn-plant",  name: "עָצִיץ",            cost: 30, emoji: "🪴", pos: { bottom: "7%",  left: "40%" } },
+    { id: "fn-lamp",   name: "מְנוֹרָה",           cost: 35, emoji: "💡", pos: { top: "9%",    right: "10%"} },
+    { id: "fn-picture",name: "תְּמוּנָה",          cost: 30, emoji: "🖼️", pos: { top: "10%",   left: "40%" } },
+    { id: "fn-rug",    name: "שָׁטִיחַ",           cost: 30, emoji: "🟫", pos: { bottom: "3%",  left: "33%" } },
+    { id: "fn-window", name: "חַלּוֹן",            cost: 40, emoji: "🪟", pos: { top: "9%",    left: "22%" } },
+    { id: "fn-clock",  name: "שָׁעוֹן",            cost: 30, emoji: "🕐", pos: { top: "8%",    left: "60%" } },
+    { id: "fn-tv",     name: "מָסָךְ",             cost: 60, emoji: "📺", pos: { top: "28%",   right: "8%" } },
+    { id: "fn-cake",   name: "עוּגָה",            cost: 35, emoji: "🎂", pos: { bottom: "8%",  left: "58%" } },
+    { id: "fn-toys",   name: "אַרְגַּז צַעֲצוּעִים", cost: 40, emoji: "🪀", pos: { bottom: "8%", right: "32%" } }
   ]
 };
 
@@ -45,7 +80,9 @@ window.SHOP_ALL = []
   .concat(window.SHOP.colors.map(x => ({ ...x, slot: "color" })))
   .concat(window.SHOP.hats.map(x => ({ ...x, slot: "hat" })))
   .concat(window.SHOP.pets.map(x => ({ ...x, slot: "pet" })))
-  .concat(window.SHOP.backgrounds.map(x => ({ ...x, slot: "bg" })));
+  .concat(window.SHOP.props.map(x => ({ ...x, slot: "prop" })))
+  .concat(window.SHOP.backgrounds.map(x => ({ ...x, slot: "bg" })))
+  .concat(window.SHOP.furniture.map(x => ({ ...x, slot: "furniture" })));
 
 window.shopItem = id => window.SHOP_ALL.find(x => x.id === id);
 

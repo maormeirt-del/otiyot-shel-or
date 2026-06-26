@@ -28,6 +28,7 @@ window.UI = (function () {
     const gid = "fg" + Math.random().toString(36).slice(2, 8);
     const hat = has && State.equipped("hat") ? window.shopItem(State.equipped("hat")) : null;
     const pet = has && State.equipped("pet") ? window.shopItem(State.equipped("pet")) : null;
+    const prop = has && State.equipped("prop") ? window.shopItem(State.equipped("prop")) : null;
     const svg = `<svg class="neri" viewBox="0 0 100 130" width="${size}" height="${size * 1.3}" aria-label="נרי">
       <defs><radialGradient id="${gid}" cx="50%" cy="35%" r="65%">
         <stop offset="0%" stop-color="${stops[0]}"/>
@@ -44,7 +45,8 @@ window.UI = (function () {
     </svg>`;
     const hatHtml = hat ? `<span class="neri-hat" style="font-size:${Math.round(size * .42)}px">${hat.emoji}</span>` : "";
     const petHtml = pet ? `<span class="neri-pet" style="font-size:${Math.round(size * .4)}px">${pet.emoji}</span>` : "";
-    return `<span class="neri-wrap" style="width:${size}px;height:${Math.round(size * 1.3)}px">${svg}${hatHtml}${petHtml}</span>`;
+    const propHtml = prop ? `<span class="neri-prop" style="font-size:${Math.round(size * .38)}px">${prop.emoji}</span>` : "";
+    return `<span class="neri-wrap" style="width:${size}px;height:${Math.round(size * 1.3)}px">${svg}${hatHtml}${petHtml}${propHtml}</span>`;
   }
 
   /* רקע מסך לפי הפריט שנקנה */

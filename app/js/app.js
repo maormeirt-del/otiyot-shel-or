@@ -63,6 +63,7 @@ window.App = (function () {
         ${buildAdventureMap()}
         <div class="home-actions">
           <button class="tile" onclick="App.go('shop')"><span>🛍️</span>חֲנוּת</button>
+          <button class="tile" onclick="App.room()"><span>🏠</span>חֶדֶר נֵרִי</button>
           <button class="tile" onclick="App.playground()"><span>🕹️</span>מִשְׂחָקִים</button>
           <button class="tile" onclick="App.album()"><span>📔</span>אַלְבּוֹם</button>
           <button class="tile" onclick="App.realWorld()"><span>🌍</span>עוֹלָם</button>
@@ -338,9 +339,12 @@ window.App = (function () {
             <p class="hint">${g("קוֹרֵא וְאוֹסֵף אוֹר — וְקוֹנֶה אֲבִיזָרִים לְנֵרִי!", "קוֹרֵאת וְאוֹסֶפֶת אוֹר — וְקוֹנָה אֲבִיזָרִים לְנֵרִי!")}</p>
           </div>
         </div>
+        <button class="btn primary room-cta" onclick="App.room()">🏠 ${g("בּוֹא לַחֶדֶר שֶׁל נֵרִי", "בּוֹאִי לַחֶדֶר שֶׁל נֵרִי")} ←</button>
         ${shopSection("צִבְעֵי לֶהָבָה 🎨", "color")}
-        ${shopSection("כּוֹבָעִים 🎩", "hat")}
+        ${shopSection("כּוֹבָעִים וַאֲבִיזָרִים 🎩", "hat")}
+        ${shopSection("חֲפָצִים שֶׁנֵּרִי מַחֲזִיק ✋", "prop")}
         ${shopSection("חֲבֵרִים 🐾", "pet")}
+        ${shopSection("רָהִיטִים לַחֶדֶר 🏠", "furniture")}
         ${shopSection("רְקָעִים 🌌", "bg")}
       </div>`);
   }
@@ -350,16 +354,18 @@ window.App = (function () {
       <div class="shop-grid">${items.map(shopCard).join("")}</div></div>`;
   }
   function shopCard(it) {
-    const owned = State.owns(it.id), equip = State.equipped(it.slot) === it.id;
+    const owned = State.owns(it.id), isFurn = it.slot === "furniture";
+    const equip = !isFurn && State.equipped(it.slot) === it.id;
     let preview;
     if (it.slot === "color") preview = `<span class="sw sw-color" style="background:linear-gradient(135deg,${it.stops[0]},${it.stops[2]})"></span>`;
     else if (it.slot === "bg") preview = `<span class="sw sw-bg" style="background:${it.css}"></span>`;
     else preview = `<span class="sw sw-emoji">${it.emoji}</span>`;
     let action;
-    if (equip) action = `<span class="own-tag">לָבוּשׁ ✓</span>`;
+    if (isFurn) action = owned ? `<span class="own-tag">בַּחֶדֶר ✓</span>` : `<button class="btn small primary" onclick="App.buyItem('${it.id}')">✨ ${it.cost}</button>`;
+    else if (equip) action = `<span class="own-tag">לָבוּשׁ ✓</span>`;
     else if (owned) action = `<button class="btn small" onclick="App.equipItem('${it.id}')">לִלְבֹּשׁ</button>`;
     else action = `<button class="btn small primary" onclick="App.buyItem('${it.id}')">✨ ${it.cost}</button>`;
-    return `<div class="shop-card ${equip ? 'equipped' : ''}">${preview}
+    return `<div class="shop-card ${(equip || (isFurn && owned)) ? 'equipped' : ''}">${preview}
       <div class="shop-name nikud">${it.name}</div>${action}</div>`;
   }
   function buyItem(id) {
@@ -767,18 +773,59 @@ window.App = (function () {
       </div>`);
   }
 
+  /* ====================== הַחֶדֶר שֶׁל נֵרִי ====================== */
+  function posStyle(p) { return Object.keys(p).map(k => `${k}:${p[k]}`).join(";"); }
+  function room() {
+    const furn = window.SHOP.furniture.filter(f => State.owns(f.id));
+    const happy = State.progress.happy || 60;
+    UI.show(`${UI.topbar()}
+      <div class="room-view">
+        <button class="back" onclick="App.go('home')">→ חֲזָרָה</button>
+        <h2>🏠 הַחֶדֶר שֶׁל נֵרִי</h2>
+        <div class="happy-bar">
+          <span>😊 ${happy >= 85 ? g("נֵרִי מְאֻשָּׁר!", "נֵרִי מְאֻשָּׁר!") : g("נֵרִי שָׂמֵחַ", "נֵרִי שָׂמֵחַ")}</span>
+          <div class="happy-track"><span style="width:${happy}%"></span></div>
+        </div>
+        <div class="room">
+          ${furn.map(f => `<span class="room-item" style="${posStyle(f.pos)}">${f.emoji}</span>`).join("")}
+          <div class="room-neri" id="roomneri">${UI.neri(120)}</div>
+          ${furn.length === 0 ? `<div class="room-hint nikud">הַחֶדֶר רֵיק... קְנֵה רָהִיטִים בַּחֲנוּת! 🛋️</div>` : ""}
+        </div>
+        <div class="care-grid">
+          <button class="care-btn" onclick="App.careNeri('play')"><span>🤹</span>שַׂחֵק</button>
+          <button class="care-btn" onclick="App.careNeri('walk')"><span>🚶</span>טַיֵּל</button>
+          <button class="care-btn" onclick="App.careNeri('pet')"><span>❤️</span>לַטֵּף</button>
+          <button class="care-btn" onclick="App.gameFluency()"><span>📖</span>קְרָא לוֹ</button>
+        </div>
+        <button class="btn primary" onclick="App.go('shop')">🛍️ ${g("קְנֵה עוֹד דְּבָרִים", "קְנִי עוֹד דְּבָרִים")}</button>
+      </div>`);
+  }
+  function careNeri(action) {
+    State.raiseHappy(12); UI.chime(true);
+    const n = document.getElementById("roomneri");
+    if (n) { n.classList.remove("bounce"); void n.offsetWidth; n.classList.add("bounce"); }
+    const msgs = {
+      play: g("אֵיזֶה כֵּיף לְשַׂחֵק! 🎉", "אֵיזֶה כֵּיף לְשַׂחֵק! 🎉"),
+      walk: g("טִיּוּל נֶחְמָד! 🚶", "טִיּוּל נֶחְמָד! 🚶"),
+      pet:  g("נֵרִי אוֹהֵב אוֹתְךָ ❤️", "נֵרִי אוֹהֵב אוֹתָךְ ❤️")
+    };
+    UI.toast(msgs[action] || "נֵרִי שָׂמֵחַ!");
+    const bar = document.querySelector(".happy-track span"); if (bar) bar.style.width = (State.progress.happy || 60) + "%";
+  }
+
   /* ====================== ראוטר ====================== */
   function go(where) {
     Speech.stop();
     if (where === "home") home();
     else if (where === "parent") parent();
     else if (where === "shop") shop();
+    else if (where === "room") room();
     else home();
   }
 
   return { boot, go, home, onboarding, openWorld, openActivity, finishActivity,
            realWorld, doRealWorld, achievements, parent, confirmReset,
-           shop, buyItem, equipItem, chest, claimMission,
+           shop, buyItem, equipItem, chest, claimMission, room, careNeri,
            playground, gameFluency, gameWheel, gameOpeningSound, gameClosingSound, gameSyllables, gameTrace,
            gameLetterHunt, gameWordBubbles, album,
            parshaChallenge, completeParsha };

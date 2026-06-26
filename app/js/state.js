@@ -18,11 +18,12 @@ window.State = (function () {
       streak: { count: 0, last: null },
       wordsRead: 0, realWorld: {},
       owned: { "c-gold": true, "bg-cream": true },
-      equipped: { color: "c-gold", hat: null, pet: null, bg: "bg-cream" },
+      equipped: { color: "c-gold", hat: null, pet: null, prop: null, bg: "bg-cream" },
       chest: { last: null },
       daily: { date: null, activities: 0, light: 0, claimed: false },
       readDays: {},
       bestCombo: 0,
+      happy: 60,
       lastWorld: "w0"
     };
   }
@@ -68,6 +69,7 @@ window.State = (function () {
     progress.done[id] = true;
     if (first) {
       rollDaily(); progress.daily.activities += 1;
+      progress.happy = Math.min(100, (progress.happy || 60) + 4);  // לימוד משמח את נֵרִי
       if (lightReward) gainLight(lightReward);
     }
     saveProgress(progress);
@@ -104,10 +106,11 @@ window.State = (function () {
     if (owns(item.id)) return "owned";
     if (!spend(item.cost)) return "broke";
     progress.owned[item.id] = true;
-    equip(item);                 // ללבוש מיד
+    if (item.slot !== "furniture") equip(item);   // רהיט מופיע בחדר; השאר נלבש מיד
     saveProgress(progress); checkMilestones();
     return "ok";
   }
+  function raiseHappy(n) { progress.happy = Math.min(100, (progress.happy || 60) + n); saveProgress(progress); }
   function equip(item) {
     progress.equipped[item.slot] = item.id;
     saveProgress(progress);
@@ -202,7 +205,7 @@ window.State = (function () {
     get progress() { return progress; },
     saveProgress: () => saveProgress(progress),
     addLight, spend, markDone, isDone, addWordsRead, touchStreak,
-    owns, buy, equip, equipped, ownedCount,
+    owns, buy, equip, equipped, ownedCount, raiseHappy,
     rank, nextRank, chestReady, openChest, storiesDone,
     dailyMission, claimMission, readCombo, last14Days,
     popMilestone, milestoneById, allMilestones, reset,

@@ -184,14 +184,18 @@ window.App = (function () {
         <path d="${d}" class="path-glow"/><path d="${d}" class="path-line"/></svg>${nodes}</div>`;
   }
 
-  /* כל העולמות פתוחים — אפשר לדלג חופשי. מסמנים את המומלץ הבא. */
+  /* המומלץ נקבע לפי הכיתה: מתחילים מהעולם המתאים לגיל, לא מההתחלה.
+     כל העולמות עדיין פתוחים (דילוג חופשי) — זו רק נקודת ההתחלה המומלצת. */
   function recommendedWorld() {
     const worlds = window.CURRICULUM.worlds;
-    for (let i = 0; i < worlds.length; i++) {
-      const acts = worlds[i].build();
-      if (acts.some(a => !State.isDone(a.id))) return i;
+    const gr = window.gradeById(State.profile && State.profile.grade);
+    const order = (gr && gr.worlds && gr.worlds.length) ? gr.worlds : worlds.map(w => w.id);
+    for (const wid of order) {
+      const w = worlds.find(x => x.id === wid);
+      if (w && w.build().some(a => !State.isDone(a.id))) return worlds.indexOf(w);
     }
-    return worlds.length - 1;
+    const li = worlds.findIndex(x => x.id === order[order.length - 1]);
+    return li >= 0 ? li : worlds.length - 1;
   }
 
   /* ====================== עוֹלָם בּוֹדֵד ====================== */

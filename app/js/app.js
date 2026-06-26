@@ -3,6 +3,16 @@
    =========================================================== */
 window.App = (function () {
   const g = UI.g;
+  const GAME_INFO = {
+    wheel: { label: "גַּלְגַּל הָאוֹתִיּוֹת", emoji: "🎡", fn: "gameWheel" },
+    openingSound: { label: "צְלִיל פּוֹתֵחַ", emoji: "👂", fn: "gameOpeningSound" },
+    closingSound: { label: "צְלִיל סוֹגֵר", emoji: "👂", fn: "gameClosingSound" },
+    syllables: { label: "סְפִירַת הֲבָרוֹת", emoji: "👏", fn: "gameSyllables" },
+    trace: { label: "כְּתִיבַת אוֹתִיּוֹת", emoji: "✍️", fn: "gameTrace" },
+    letterHunt: { label: "צַיָּד הָאוֹתִיּוֹת", emoji: "🎯", fn: "gameLetterHunt" },
+    wordBubbles: { label: "בּוּעוֹת מִלִּים", emoji: "🫧", fn: "gameWordBubbles" },
+    fluency: { label: "קְרִיאָה שׁוֹטֶפֶת", emoji: "🎵", fn: "gameFluency" }
+  };
 
   function boot() {
     UI.applyBackground();
@@ -24,21 +34,29 @@ window.App = (function () {
         </div>
         <label class="ob-label">אֵיךְ קוֹרְאִים לָךְ?</label>
         <input id="obName" class="ob-input" placeholder="הַשֵּׁם שֶׁלִּי..." maxlength="12">
+        <label class="ob-label">בְּאֵיזוֹ כִּתָּה?</label>
+        <div class="grade-row">
+          ${window.GRADES.map(gr => `<button class="grade-btn" data-grade="${gr.id}"><span class="gge">${gr.emoji}</span><span>${gr.title}</span></button>`).join("")}
+        </div>
         <button class="btn primary big" id="obStart" disabled>יֵשׁ! מַתְחִילִים ←</button>
       </div>
     </div>`);
-    let chosen = null;
+    let chosen = null, grade = null;
     S().querySelectorAll(".gender-btn").forEach(b => b.onclick = () => {
       S().querySelectorAll(".gender-btn").forEach(x => x.classList.remove("sel"));
       b.classList.add("sel"); chosen = b.dataset.g; check();
     });
+    S().querySelectorAll(".grade-btn").forEach(b => b.onclick = () => {
+      S().querySelectorAll(".grade-btn").forEach(x => x.classList.remove("sel"));
+      b.classList.add("sel"); grade = b.dataset.grade; check();
+    });
     const nameI = document.getElementById("obName");
     nameI.oninput = check;
     function check() {
-      document.getElementById("obStart").disabled = !(chosen && nameI.value.trim());
+      document.getElementById("obStart").disabled = !(chosen && grade && nameI.value.trim());
     }
     document.getElementById("obStart").onclick = () => {
-      State.setProfile({ name: nameI.value.trim(), gender: chosen, createdAt: Date.now() });
+      State.setProfile({ name: nameI.value.trim(), gender: chosen, grade: grade, createdAt: Date.now() });
       UI.sparkle(); UI.chime(true);
       setTimeout(home, 500);
     };
@@ -56,6 +74,7 @@ window.App = (function () {
             <div class="me-greet nikud">${g(`שָׁלוֹם ${UI.name()}! מוּכָן לְהַדְלִיק אוֹר?`, `שָׁלוֹם ${UI.name()}! מוּכָנָה לְהַדְלִיק אוֹר?`)}</div>
           </div>
         </div>
+        ${gradeCard()}
         ${missionCard()}
         ${parshaCard()}
         ${State.chestReady() ? `<button class="chest-banner" onclick="App.chest()">🎁 תִּיבַת הָאוֹצָר הַיּוֹמִית מְחַכָּה! לַחֵץ לִפְתֹּחַ</button>` : ""}
@@ -864,6 +883,54 @@ window.App = (function () {
     };
   }
 
+  /* ====================== מַסְלוּל לְפִי כִּתָּה ====================== */
+  function gradeCard() {
+    const gr = window.gradeById(State.profile && State.profile.grade);
+    return `<button class="grade-card" onclick="App.gradePath()">
+      <span class="gc-emoji">${gr.emoji}</span>
+      <span class="gc-text"><b>הַמַּסְלוּל שֶׁלִּי · ${gr.title}</b><br><span class="nikud">${gr.focus}</span></span>
+      <span class="gc-go">←</span></button>`;
+  }
+  function gradePath() {
+    const gr = window.gradeById(State.profile && State.profile.grade);
+    const worlds = window.CURRICULUM.worlds;
+    UI.show(`${UI.topbar()}
+      <div class="gradepath-view">
+        <button class="back" onclick="App.go('home')">→ חֲזָרָה</button>
+        <div class="gp-head"><span class="gp-emoji">${gr.emoji}</span>
+          <div><h2>${gr.title}</h2><p class="gp-age">גִּיל ${gr.age}</p></div></div>
+        <div class="gp-expect"><b>מָה מְצֻפֶּה:</b> <span class="nikud">${gr.expect}</span>
+          ${gr.wpm ? `<div class="gp-wpm">🎯 יַעַד שֶׁטֶף: <b>${gr.wpm}</b> מִלִּים לְדַקָּה</div>` : ""}</div>
+        <h3 class="gp-sec">📚 הָעוֹלָמוֹת שֶׁלְּךָ</h3>
+        <div class="gp-list">
+          ${gr.worlds.map(wid => {
+            const w = worlds.find(x => x.id === wid); if (!w) return "";
+            const acts = w.build(), doneN = acts.filter(a => State.isDone(a.id)).length;
+            return `<button class="gp-item" onclick="App.openWorld('${wid}')"><span class="gp-ic">${w.icon}</span><span class="gp-nm nikud">${w.title}</span><span class="gp-pr">${doneN}/${acts.length}</span></button>`;
+          }).join("")}
+        </div>
+        <h3 class="gp-sec">🕹️ הַמִּשְׂחָקִים שֶׁלְּךָ</h3>
+        <div class="gp-list">
+          ${gr.games.map(gid => { const gi = GAME_INFO[gid]; if (!gi) return ""; return `<button class="gp-item" onclick="App.${gi.fn}()"><span class="gp-ic">${gi.emoji}</span><span class="gp-nm nikud">${gi.label}</span><span class="gp-pr">←</span></button>`; }).join("")}
+        </div>
+        <button class="btn ghost" onclick="App.changeGrade()">🔄 שַׁנֵּה כִּתָּה</button>
+      </div>`);
+  }
+  function changeGrade() {
+    UI.show(`${UI.topbar()}
+      <div class="cg-view">
+        <button class="back" onclick="App.gradePath()">→ חֲזָרָה</button>
+        <h2>🔄 ${g("בְּאֵיזוֹ כִּתָּה אַתָּה?", "בְּאֵיזוֹ כִּתָּה אַתְּ?")}</h2>
+        <div class="grade-row vert">
+          ${window.GRADES.map(gr => `<button class="grade-btn wide ${State.profile && State.profile.grade === gr.id ? 'sel' : ''}" onclick="App.setGrade('${gr.id}')"><span class="gge">${gr.emoji}</span><span>${gr.title} · גִּיל ${gr.age}</span></button>`).join("")}
+        </div>
+      </div>`);
+  }
+  function setGrade(id) {
+    const p = State.profile; p.grade = id; State.setProfile(p);
+    UI.chime(true); UI.toast("הַכִּתָּה עֻדְכְּנָה ✓"); gradePath();
+  }
+
   /* ====================== ראוטר ====================== */
   function go(where) {
     Speech.stop();
@@ -872,12 +939,14 @@ window.App = (function () {
     else if (where === "shop") shop();
     else if (where === "room") room();
     else if (where === "coloring") coloringStudio();
+    else if (where === "gradePath") gradePath();
     else home();
   }
 
   return { boot, go, home, onboarding, openWorld, openActivity, finishActivity,
            realWorld, doRealWorld, achievements, parent, confirmReset,
            shop, buyItem, equipItem, chest, claimMission, room, careNeri, coloringStudio, colorPic,
+           gradePath, changeGrade, setGrade,
            playground, gameFluency, gameWheel, gameOpeningSound, gameClosingSound, gameSyllables, gameTrace,
            gameLetterHunt, gameWordBubbles, album,
            parshaChallenge, completeParsha };

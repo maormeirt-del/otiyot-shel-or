@@ -62,6 +62,38 @@ h2,h3{font-family:var(--font-display);letter-spacing:-.2px}
   font-size:18px;position:relative;flex:1;font-family:"Frank Ruhl Libre",serif}
 .bubble:before{content:"";position:absolute;right:-8px;top:22px;border:8px solid transparent;border-right-color:#fff}
 
+/* ---------- בחירת כיתה (onboarding) ---------- */
+.grade-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.grade-row.vert{display:flex;flex-direction:column;gap:10px}
+.grade-btn{border:3px solid #eee;background:#fff;border-radius:14px;padding:10px 4px;font-size:14px;font-weight:700;
+  cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink2)}
+.grade-btn.wide{flex-direction:row;justify-content:center;gap:10px;padding:14px;font-size:18px}
+.grade-btn .gge{font-size:26px}
+.grade-btn.sel{border-color:var(--gold-d);background:var(--cream2);box-shadow:var(--shadow)}
+
+/* ---------- מסלול לפי כיתה ---------- */
+.grade-card{width:100%;display:flex;align-items:center;gap:12px;border:none;cursor:pointer;font-family:inherit;
+  text-align:right;border-radius:18px;padding:12px 14px;margin-bottom:12px;background:linear-gradient(135deg,#eaf3ff,#d6e6ff);
+  color:var(--ink);box-shadow:var(--shadow)}
+.gc-emoji{font-size:32px}
+.gc-text{flex:1;font-size:14px;line-height:1.35}
+.gc-text b{font-size:16px;color:var(--ink2)}
+.gc-go{font-size:22px;color:var(--ink2)}
+.gradepath-view h2,.cg-view h2{font-size:24px;margin:2px 0}
+.gp-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.gp-emoji{font-size:42px}
+.gp-age{color:var(--ink-soft);margin:0}
+.gp-expect{background:#fff;border-radius:16px;padding:14px;box-shadow:var(--shadow);font-size:16px;line-height:1.6;margin-bottom:10px}
+.gp-wpm{margin-top:8px;background:var(--cream2);border-radius:10px;padding:6px 12px;font-size:14px;color:var(--gold-d);display:inline-block}
+.gp-sec{font-size:18px;margin:16px 0 8px}
+.gp-list{display:flex;flex-direction:column;gap:9px}
+.gp-item{display:flex;align-items:center;gap:12px;background:#fff;border:none;border-radius:14px;padding:13px;
+  box-shadow:var(--shadow);cursor:pointer;font-family:inherit;text-align:right}
+.gp-ic{font-size:28px}
+.gp-nm{flex:1;font-size:17px;font-weight:600}
+.gp-pr{color:var(--ink-soft);font-weight:700}
+.cg-view .grade-row.vert{margin-top:14px}
+
 /* ---------- כניסה ---------- */
 .onboard{text-align:center;padding-top:18px}
 .hero-flame{display:flex;justify-content:center;animation:rise .6s ease}

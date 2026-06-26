@@ -394,6 +394,8 @@ window.App = (function () {
         <div class="pg-list">
           <button class="pg-card" onclick="App.gameWheel()"><span class="pg-emoji">🎡</span>
             <span><b>גַּלְגַּל הָאוֹתִיּוֹת</b><br><small>אוֹת + נִקּוּד = הֲבָרָה. שַׁנֵּה וְשָׁמַע!</small></span></button>
+          <button class="pg-card" onclick="App.gameOpeningSound()"><span class="pg-emoji">👂</span>
+            <span><b>צְלִיל פּוֹתֵחַ</b><br><small>אֵיזוֹ מִלָּה מַתְחִילָה בַּצְּלִיל?</small></span></button>
           <button class="pg-card" onclick="App.gameLetterHunt()"><span class="pg-emoji">🎯</span>
             <span><b>צַיָּד הָאוֹתִיּוֹת</b><br><small>הַקֵּשׁ עַל הָאוֹת הַנְּכוֹנָה מַהֵר!</small></span></button>
           <button class="pg-card" onclick="App.gameWordBubbles()"><span class="pg-emoji">🫧</span>
@@ -441,6 +443,35 @@ window.App = (function () {
       });
     }
     render(); say();
+  }
+
+  /* מודעות פונולוגית — צליל פותח (בהשראת "בהצלחה בכיתה א'") */
+  function firstLetter(word) { return word.replace(/[֑-ׇ]/g, "")[0]; }
+  function gameOpeningSound() {
+    let score = 0, round = 0, total = 8;
+    function next() {
+      if (round >= total) return endGame("צְלִיל פּוֹתֵחַ", score, Math.max(3, score * 2));
+      round++;
+      const shuffled = window.WORDS.slice().sort(() => Math.random() - .5);
+      const chosen = [], used = new Set();
+      for (const w of shuffled) { const L = firstLetter(w.w); if (!used.has(L)) { used.add(L); chosen.push({ w: w.w, emoji: w.emoji, L }); } if (chosen.length === 3) break; }
+      const target = chosen[Math.floor(Math.random() * chosen.length)];
+      const tl = window.LETTERS.find(l => l.ch === target.L);
+      UI.show(`<div class="game">
+        <div class="game-top"><span>${round}/${total}</span><span>✨ <b>${score}</b></span></div>
+        <p class="hint">${g("אֵיזוֹ מִלָּה מַתְחִילָה בַּצְּלִיל הַזֶּה?", "אֵיזוֹ מִלָּה מַתְחִילָה בַּצְּלִיל הַזֶּה?")}</p>
+        <button class="phon-target nikud" id="pt">${target.L} <small>🔊</small></button>
+        <div class="emoji-options">${chosen.map(c => `<button class="emoji-opt" data-ok="${c.L === target.L}">${c.emoji}</button>`).join("")}</div>
+        <button class="btn ghost" onclick="App.playground()">סִיּוּם</button>
+      </div>`);
+      const say = () => Speech.say(tl ? tl.name : target.L);
+      document.getElementById("pt").onclick = say; say();
+      UI.screen().querySelectorAll(".emoji-opt").forEach(b => b.onclick = () => {
+        if (b.dataset.ok === "true") { b.classList.add("correct"); score++; UI.chime(true); setTimeout(next, 600); }
+        else { b.classList.add("wrong"); UI.chime(false); setTimeout(() => b.classList.remove("wrong"), 400); }
+      });
+    }
+    next();
   }
 
   /* משחק 1 — ציד אותיות (30 שניות) */
@@ -552,7 +583,7 @@ window.App = (function () {
   return { boot, go, home, onboarding, openWorld, openActivity, finishActivity,
            realWorld, doRealWorld, achievements, parent, confirmReset,
            shop, buyItem, equipItem, chest, claimMission,
-           playground, gameWheel, gameLetterHunt, gameWordBubbles, album,
+           playground, gameWheel, gameOpeningSound, gameLetterHunt, gameWordBubbles, album,
            parshaChallenge, completeParsha };
 })();
 

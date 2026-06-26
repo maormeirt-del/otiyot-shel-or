@@ -386,6 +386,9 @@ h2,h3{font-family:var(--font-display);letter-spacing:-.2px}
   padding:14px 0;cursor:pointer;transition:.1s}
 .hunt-cell:active{transform:scale(.9)}
 .hunt-cell.miss{border-color:var(--bad);background:#fde7e3;animation:shake .3s}
+.phon-target{font-family:var(--font-read);font-size:80px;border:none;background:#fff;border-radius:24px;
+  box-shadow:var(--shadow);padding:6px 36px;cursor:pointer;color:var(--ink2);margin:8px 0 16px}
+.phon-target small{font-size:28px}
 .bubble-target{font-size:90px;margin:10px 0}
 .bubbles{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
 .bubble-btn{font-family:"Frank Ruhl Libre",serif;font-size:28px;border:3px solid #eee;background:#fff;border-radius:40px;

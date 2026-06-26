@@ -487,6 +487,7 @@ window.App = (function () {
         if (!recording) { try { await Recorder.start(); recording = true; btn.textContent = "⏹️ עֲצֹר"; btn.classList.add("recording"); } catch (e) { UI.toast("אֵין מִיקְרוֹפוֹן"); } }
         else {
           const blob = await Recorder.stop(); recording = false; btn.textContent = "🔴 הַקְלֵט שׁוּב"; btn.classList.remove("recording");
+          if (!blob || !blob.size) { UI.toast(g("הַהַקְלָטָה לֹא נִקְלְטָה, נַסֵּה שׁוּב 🎙️", "הַהַקְלָטָה לֹא נִקְלְטָה, נַסִּי שׁוּב 🎙️")); return; }
           RecStore.get("first-fl-" + p.id).then(f => { if (!f) RecStore.put("first-fl-" + p.id, blob); });
           RecStore.put("last-fl-" + p.id, blob);
           document.getElementById("flrecbox").innerHTML = `<audio controls src="${URL.createObjectURL(blob)}"></audio>
@@ -762,7 +763,7 @@ window.App = (function () {
         <div class="ach-count">אָסַפְתָּ ${haveN} מִתּוֹךְ ${stories.length} סִפּוּרִים 📚</div>
         <div class="album-grid">
           ${stories.map(s => {
-            const done = State.isDone("story-" + s.id), wid = s.level === 5 ? "w5" : "w4";
+            const done = State.isDone("story-" + s.id), wid = s.level === 6 ? "w6" : s.level === 5 ? "w5" : "w4";
             return `<div class="album-card ${done ? 'got' : 'locked'}" ${done ? `onclick="App.openActivity('${wid}','story-${s.id}')"` : ""}>
               <div class="album-emoji">${done ? s.emoji : '❓'}</div>
               <div class="album-name nikud">${done ? s.title : '???'}</div>

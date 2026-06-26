@@ -189,7 +189,7 @@ window.Activities = (function () {
     /* --- מנוע השלבים אחרי הקריאה --- */
     function nextStep() {
       if (stepI >= steps.length) {
-        const big = s.level === 5 ? 25 : 18;
+        const big = s.reward || (s.level === 5 ? 25 : 18);
         return App.finishActivity(act, big);
       }
       steps[stepI++]();
@@ -243,6 +243,7 @@ window.Activities = (function () {
         } else {
           const blob = await Recorder.stop(); recording = false;
           btn.textContent = "🔴 הַקְלֵט שׁוּב"; btn.classList.remove("recording");
+          if (!blob || !blob.size) { UI.toast(g("הַהַקְלָטָה לֹא נִקְלְטָה, נַסֵּה שׁוּב 🎙️", "הַהַקְלָטָה לֹא נִקְלְטָה, נַסִּי שׁוּב 🎙️")); return; }
           const url = URL.createObjectURL(blob);
           // שמירת ההקלטה הראשונה לזיכרון ההתקדמות
           RecStore.get("first-" + s.id).then(first => { if (!first) RecStore.put("first-" + s.id, blob); });

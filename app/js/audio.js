@@ -77,22 +77,31 @@ window.Recorder = (function () {
   let mediaRec = null, chunks = [], stream = null;
 
   async function start() {
-    if (!navigator.mediaDevices) throw new Error("no-mic");
+    if (!navigator.mediaDevices || !window.MediaRecorder) throw new Error("no-mic");
     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     chunks = [];
-    mediaRec = new MediaRecorder(stream);
-    mediaRec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+    // בחירת פורמט שהדפדפן באמת תומך בו (קריטי לאייפון/ספארי)
+    let opts = {};
+    if (MediaRecorder.isTypeSupported) {
+      const types = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"];
+      const mt = types.find(t => MediaRecorder.isTypeSupported(t));
+      if (mt) opts.mimeType = mt;
+    }
+    try { mediaRec = new MediaRecorder(stream, opts); }
+    catch (e) { mediaRec = new MediaRecorder(stream); }
+    mediaRec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
     mediaRec.start();
   }
   function stop() {
     return new Promise(resolve => {
       if (!mediaRec) return resolve(null);
       mediaRec.onstop = () => {
-        const blob = new Blob(chunks, { type: "audio/webm" });
+        const type = (mediaRec && mediaRec.mimeType) ? mediaRec.mimeType : "audio/webm";
+        const blob = new Blob(chunks, { type });
         if (stream) stream.getTracks().forEach(t => t.stop());
         resolve(blob);
       };
-      mediaRec.stop();
+      try { mediaRec.stop(); } catch (e) { resolve(null); }
     });
   }
   function supported() {

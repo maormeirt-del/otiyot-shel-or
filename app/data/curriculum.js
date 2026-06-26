@@ -49,6 +49,13 @@ window.CURRICULUM = {
       build: () => window.STORIES.filter(s => s.level === 5).map(s => ({
         id: "story-" + s.id, type: "story", title: s.title, data: s
       }))
+    },
+    {
+      id: "w6", title: "עוֹלַם הַסִּפּוּרִים הָאֲרֻכִּים", icon: "📚", level: 6,
+      subtitle: "סִפּוּרִים גְּדוֹלִים — הַרְבֵּה יוֹתֵר אוֹר! ✨",
+      build: () => window.STORIES.filter(s => s.level === 6).map(s => ({
+        id: "story-" + s.id, type: "story", title: s.title, data: s
+      }))
     }
   ]
 };

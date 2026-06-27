@@ -229,7 +229,21 @@ window.App = (function () {
     Activities[act.type](act);
   }
 
+  /* מקדם-גיל: תוכן קל מהכיתה = פחות נקודות. ברמת הגיל / מעליה = מלא (בלי ניפוח). */
+  function worldLevelOf(wid) { const w = window.CURRICULUM.worlds.find(x => x.id === wid); return w ? w.level : 2; }
+  function gradeMult(level) {
+    const gr = window.gradeById(State.profile && State.profile.grade);
+    const G = (gr && gr.level != null) ? gr.level : 1;
+    const diff = level - G;
+    if (diff <= -3) return 0.3;
+    if (diff === -2) return 0.5;
+    if (diff === -1) return 0.7;
+    return 1;   // ברמת הגיל או מעליה — תגמול מלא, בלי ניפוח
+  }
+
   function finishActivity(act, lightReward) {
+    const lvl = (act.data && act.data.level != null) ? act.data.level : worldLevelOf(act._world);
+    lightReward = Math.max(1, Math.round(lightReward * gradeMult(lvl)));
     const first = State.markDone(act.id, lightReward);
     Speech.stop();
     UI.sparkle(); UI.chime(true);
@@ -1154,7 +1168,7 @@ window.App = (function () {
     else home();
   }
 
-  return { boot, go, home, onboarding, openWorld, openActivity, finishActivity,
+  return { boot, go, home, onboarding, openWorld, openActivity, finishActivity, gradeMult,
            realWorld, doRealWorld, achievements, parent, confirmReset,
            shop, buyItem, equipItem, chest, claimMission, room, careNeri, coloringStudio, colorPic,
            gradePath, changeGrade, setGrade,

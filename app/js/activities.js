@@ -146,6 +146,9 @@ window.Activities = (function () {
   function story(act) {
     const s = act.data;
     const wordsCount = s.pages.join(" ").split(/\s+/).length;
+    // מקדם-גיל: תוכן קל מהכיתה נותן פחות נקודות גם בצעדי ההבנה
+    const mult = (window.App && App.gradeMult) ? App.gradeMult(s.level) : 1;
+    const al = n => State.addLight(Math.max(1, Math.round(n * mult)));
     let page = 0;
 
     const steps = buildSteps(s);
@@ -260,7 +263,7 @@ window.Activities = (function () {
     function stepQ(label, q, lvl) {
       const box = frame(`<span class="qlevel">רָמָה ${lvl}</span> ${label}`, "");
       askMC(box, q.q + ` <button class="speak-mini" onclick="Speech.say(this.dataset.t)" data-t="${q.q.replace(/"/g,'')}">🔊</button>`,
-        q.options, q.answer, () => { State.addLight(2); nextStep(); });
+        q.options, q.answer, () => { al(2); nextStep(); });
     }
 
     function stepThink(t) {
@@ -271,7 +274,7 @@ window.Activities = (function () {
            <button class="btn primary" id="thinkDone">${g("סִפַּרְתִּי ✓", "סִפַּרְתִּי ✓")}</button>
          </div>`);
       Speech.say(t.q);
-      document.getElementById("thinkDone").onclick = () => { State.addLight(2); nextStep(); };
+      document.getElementById("thinkDone").onclick = () => { al(2); nextStep(); };
     }
 
     function stepSequence(seq) {
@@ -289,7 +292,7 @@ window.Activities = (function () {
             b.disabled = true; b.classList.add("picked"); UI.chime(true);
             lineEl.appendChild(UI.el(`<span class="seq-num">${need + 1}. ${item.emoji}</span>`));
             need++;
-            if (need === seq.length) { setTimeout(() => { State.addLight(3); nextStep(); }, 500); }
+            if (need === seq.length) { setTimeout(() => { al(3); nextStep(); }, 500); }
           } else { b.classList.add("wrong"); UI.chime(false); setTimeout(() => b.classList.remove("wrong"), 500); }
         };
         grid.appendChild(b);
@@ -298,12 +301,12 @@ window.Activities = (function () {
 
     function stepEmotion(em) {
       const box = frame("💗 " + g("אֵיךְ הִרְגִּישָׁה הַדְּמוּת?", "אֵיךְ הִרְגִּישָׁה הַדְּמוּת?"), "");
-      askMC(box, em.q, em.options, em.answer, () => { State.addLight(2); nextStep(); });
+      askMC(box, em.q, em.options, em.answer, () => { al(2); nextStep(); });
     }
 
     function stepEnding(en) {
       const box = frame("✨ " + g("אֵיךְ הִמְשַׁכְתָּ אֶת הַסִּפּוּר?", "אֵיךְ הִמְשַׁכְתְּ אֶת הַסִּפּוּר?"), "");
-      askMC(box, en.q, en.options, null, () => { State.addLight(2); nextStep(); }); // אין תשובה "נכונה"
+      askMC(box, en.q, en.options, null, () => { al(2); nextStep(); }); // אין תשובה "נכונה"
     }
 
     /* השלמת מילה חסרה — נוצר אוטומטית מהסיפור (בדיקת הבנה בהקשר) */
@@ -324,7 +327,7 @@ window.Activities = (function () {
         `<div class="cloze-sentence nikud">${blanked}</div><div id="clozeq"></div>`);
       askMC(document.getElementById("clozeq"), g("אֵיזוֹ מִלָּה מַתְאִימָה?", "אֵיזוֹ מִלָּה מַתְאִימָה?"),
         opts.map(o => `<span class="nikud">${o}</span>`), opts.indexOf(target),
-        () => { State.addLight(3); nextStep(); });
+        () => { al(3); nextStep(); });
     }
 
     /* נכון / לא נכון — בדיקת הבנה */

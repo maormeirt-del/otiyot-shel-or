@@ -1,6 +1,6 @@
 /* Service Worker — network-first כדי שעדכונים תמיד יגיעו, עם fallback אופליין.
    אפס תלות חיצונית. */
-const CACHE = "aor-v14";
+const CACHE = "aor-v15";
 const ASSETS = [
   "./", "./index.html",
   "./css/style.css", "./fonts/fonts.css",

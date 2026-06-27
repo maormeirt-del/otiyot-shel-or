@@ -84,6 +84,7 @@ window.App = (function () {
           <button class="tile" onclick="App.go('shop')"><span>🛍️</span>חֲנוּת</button>
           <button class="tile" onclick="App.room()"><span>🏠</span>חֶדֶר נֵרִי</button>
           <button class="tile" onclick="App.coloringStudio()"><span>🎨</span>צְבִיעָה</button>
+          <button class="tile" onclick="App.go('arcade')"><span>🎮</span>מִגְרַשׁ הַכֵּף</button>
           <button class="tile" onclick="App.playground()"><span>🕹️</span>מִשְׂחָקִים</button>
           <button class="tile" onclick="App.album()"><span>📔</span>אַלְבּוֹם</button>
           <button class="tile" onclick="App.realWorld()"><span>🌍</span>עוֹלָם</button>
@@ -987,15 +988,169 @@ window.App = (function () {
     UI.chime(true); UI.toast("הַכִּתָּה עֻדְכְּנָה ✓"); gradePath();
   }
 
+  /* ====================== מִגְרַשׁ הַכֵּף (פְּרָס) ====================== */
+  const ARCADE_GATE = 150;     // אור יומי לפתיחה
+  let arcadeClock = null, gameTimer = null;
+  function startArcadeClock() {
+    if (arcadeClock) return;
+    arcadeClock = setInterval(() => {
+      State.arcadeTick(1);
+      if (State.arcadeSecLeft() <= 0) { stopArcadeClock(); stopGameTimer(); UI.toast("נִגְמַר זְמַן הַמִּשְׂחָק לְהַיּוֹם 🌙"); arcade(); }
+    }, 1000);
+  }
+  function stopArcadeClock() { if (arcadeClock) { clearInterval(arcadeClock); arcadeClock = null; } }
+  function stopGameTimer() { if (gameTimer) { clearInterval(gameTimer); gameTimer = null; } }
+
+  function arcade() {
+    stopArcadeClock(); stopGameTimer();
+    const dl = State.progress.daily.light || 0, left = State.arcadeSecLeft();
+    if (dl < ARCADE_GATE) {
+      const pct = Math.min(100, Math.round(dl / ARCADE_GATE * 100));
+      return UI.show(`${UI.topbar()}<div class="arcade-view">
+        <button class="back" onclick="App.go('home')">→ חֲזָרָה</button>
+        <h2>🎮 מִגְרַשׁ הַכֵּף</h2>
+        <div class="arcade-lock"><div class="al-emoji">🔒</div>
+          <p class="nikud">${g("אָסַפְתָּ", "אָסַפְתְּ")} <b>${dl}</b> מִתּוֹךְ ${ARCADE_GATE} אוֹר הַיּוֹם.</p>
+          <div class="mini-bar big"><span style="width:${pct}%"></span></div>
+          <p class="hint nikud">${g("עוֹד קְצָת לִמּוּד וְתִפְתַּח 10 דַּקּוֹת מִשְׂחָק! 🎉", "עוֹד קְצָת לִמּוּד וְתִפְתְּחִי 10 דַּקּוֹת מִשְׂחָק! 🎉")}</p>
+          <button class="btn primary big" onclick="App.go('home')">📖 ${g("בּוֹא נִלְמַד", "בּוֹאִי נִלְמַד")}</button></div></div>`);
+    }
+    if (left <= 0) {
+      return UI.show(`${UI.topbar()}<div class="arcade-view">
+        <button class="back" onclick="App.go('home')">→ חֲזָרָה</button>
+        <h2>🎮 מִגְרַשׁ הַכֵּף</h2>
+        <div class="arcade-lock"><div class="al-emoji">🌙</div>
+          <p class="nikud">${g("נִגְמַר זְמַן הַמִּשְׂחָק לְהַיּוֹם!", "נִגְמַר זְמַן הַמִּשְׂחָק לְהַיּוֹם!")}</p>
+          <p class="hint nikud">${g("מָחָר תְּקַבֵּל 10 דַּקּוֹת חֲדָשׁוֹת 🌟", "מָחָר תְּקַבְּלִי 10 דַּקּוֹת חֲדָשׁוֹת 🌟")}</p>
+          <button class="btn primary" onclick="App.go('home')">🏠</button></div></div>`);
+    }
+    UI.show(`${UI.topbar()}<div class="arcade-view">
+      <button class="back" onclick="App.go('home')">→ חֲזָרָה</button>
+      <h2>🎮 מִגְרַשׁ הַכֵּף</h2>
+      <div class="arcade-time">⏱️ ${g("נוֹתְרוּ לְךָ", "נוֹתְרוּ לָךְ")} <b>${Math.ceil(left / 60)}</b> דַּקּוֹת מִשְׂחָק הַיּוֹם</div>
+      <div class="arcade-grid">
+        <button class="arcade-card" onclick="App.arcMemory()"><span>🃏</span>זִכָּרוֹן</button>
+        <button class="arcade-card" onclick="App.arcXO()"><span>⭕</span>אִיקְס-עִגּוּל</button>
+        <button class="arcade-card" onclick="App.arcSnake()"><span>🐍</span>נָחָשׁ</button>
+      </div></div>`);
+  }
+
+  /* משחק זיכרון */
+  function arcMemory() {
+    startArcadeClock();
+    const set = ["🍎", "🐶", "⭐", "🌸", "🚗", "🐱", "🎈", "⚽"];
+    let deck = [...set, ...set].map(e => ({ e, flipped: false, matched: false })).sort(() => Math.random() - .5);
+    let first = null, lock = false, matched = 0;
+    function render() {
+      UI.show(`${UI.topbar()}<div class="mem-view">
+        <button class="back" onclick="App.arcade()">→ חֲזָרָה</button>
+        <h2>🃏 זִכָּרוֹן</h2>
+        <p class="hint">${g("מְצָא אֶת כָּל הַזּוּגוֹת!", "מִצְאִי אֶת כָּל הַזּוּגוֹת!")}</p>
+        <div class="mem-grid">${deck.map((c, i) => `<button class="mem-card ${c.flipped || c.matched ? 'face' : ''} ${c.matched ? 'matched' : ''}" data-i="${i}">${c.flipped || c.matched ? c.e : '❓'}</button>`).join("")}</div></div>`);
+      UI.screen().querySelectorAll(".mem-card").forEach(b => b.onclick = () => {
+        if (lock) return; const c = deck[+b.dataset.i]; if (c.flipped || c.matched) return;
+        c.flipped = true;
+        if (!first) { first = c; render(); }
+        else {
+          render();
+          if (first.e === c.e) { first.matched = c.matched = true; matched++; UI.chime(true); first = null; if (matched === set.length) { setTimeout(() => { UI.sparkle(); UI.toast(g("נִצַּחְתָּ! 🎉", "נִצַּחְתְּ! 🎉")); }, 200); } }
+          else { lock = true; UI.chime(false); setTimeout(() => { first.flipped = c.flipped = false; first = null; lock = false; render(); }, 800); }
+        }
+      });
+    }
+    render();
+  }
+
+  /* איקס-עיגול נגד המחשב */
+  function arcXO() {
+    startArcadeClock();
+    let board = Array(9).fill(""), done = false;
+    const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    const win = p => lines.some(L => L.every(i => board[i] === p));
+    function ai() {
+      const f = p => { for (const L of lines) { const v = L.map(i => board[i]); if (v.filter(x => x === p).length === 2 && v.includes("")) return L[v.indexOf("")]; } return -1; };
+      let m = f("O"); if (m < 0) m = f("X"); if (m < 0 && !board[4]) m = 4;
+      if (m < 0) { const c = [0,2,6,8].filter(i => !board[i]); if (c.length) m = c[Math.floor(Math.random() * c.length)]; }
+      if (m < 0) { const e = board.map((v, i) => v ? -1 : i).filter(i => i >= 0); m = e[Math.floor(Math.random() * e.length)]; }
+      return m;
+    }
+    function render(msg) {
+      UI.show(`${UI.topbar()}<div class="xo-view">
+        <button class="back" onclick="App.arcade()">→ חֲזָרָה</button>
+        <h2>⭕ אִיקְס-עִגּוּל</h2>
+        <p class="hint">${msg || g("אַתָּה ❌ · הַמַּחְשֵׁב ⭕", "אַתְּ ❌ · הַמַּחְשֵׁב ⭕")}</p>
+        <div class="xo-grid">${board.map((v, i) => `<button class="xo-cell" data-i="${i}">${v === "X" ? "❌" : v === "O" ? "⭕" : ""}</button>`).join("")}</div>
+        <button class="btn ghost" onclick="App.arcXO()">🔄 ${g("מִשְׂחָק חָדָשׁ", "מִשְׂחָק חָדָשׁ")}</button></div>`);
+      UI.screen().querySelectorAll(".xo-cell").forEach(b => b.onclick = () => {
+        const i = +b.dataset.i; if (done || board[i]) return;
+        board[i] = "X";
+        if (win("X")) { done = true; UI.sparkle(); UI.chime(true); return render(g("נִצַּחְתָּ! 🎉", "נִצַּחְתְּ! 🎉")); }
+        if (board.every(Boolean)) { done = true; return render("תֵּיקוּ! 🤝"); }
+        const m = ai(); board[m] = "O";
+        if (win("O")) { done = true; UI.chime(false); return render(g("הַמַּחְשֵׁב נִצַּח — נַסֵּה שׁוּב!", "הַמַּחְשֵׁב נִצַּח — נַסִּי שׁוּב!")); }
+        if (board.every(Boolean)) { done = true; return render("תֵּיקוּ! 🤝"); }
+        render();
+      });
+    }
+    render();
+  }
+
+  /* נחש */
+  function arcSnake() {
+    startArcadeClock(); stopGameTimer();
+    const N = 15, CELL = 19, W = N * CELL;
+    const rand = () => Math.floor(Math.random() * N);
+    let snake = [{ x: 7, y: 7 }], dir = { x: 1, y: 0 }, nextDir = { x: 1, y: 0 }, score = 0, over = false, food;
+    function spawn() { let f; do { f = { x: rand(), y: rand() }; } while (snake.some(s => s.x === f.x && s.y === f.y)); return f; }
+    food = spawn();
+    UI.show(`${UI.topbar()}<div class="snake-view">
+      <button class="back" onclick="App.arcade()">→ חֲזָרָה</button>
+      <h2>🐍 נָחָשׁ <span class="snake-score" id="snksc">0</span></h2>
+      <canvas id="snk" class="snake-canvas" width="${W}" height="${W}"></canvas>
+      <div class="dpad">
+        <button class="dbtn" data-d="up">▲</button>
+        <div class="dpad-mid"><button class="dbtn" data-d="left">◀</button><button class="dbtn" data-d="right">▶</button></div>
+        <button class="dbtn" data-d="down">▼</button>
+      </div></div>`);
+    const map = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
+    UI.screen().querySelectorAll(".dbtn").forEach(b => b.onclick = () => { const nd = map[b.dataset.d]; if (nd.x === -dir.x && nd.y === -dir.y) return; nextDir = nd; });
+    const ctx = document.getElementById("snk").getContext("2d");
+    function draw() {
+      ctx.fillStyle = "#fff8ec"; ctx.fillRect(0, 0, W, W);
+      ctx.font = (CELL - 2) + "px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("🍎", food.x * CELL + CELL / 2, food.y * CELL + CELL / 2);
+      snake.forEach((s, i) => { ctx.fillStyle = i === 0 ? "#1f8a4f" : "#6bcb77"; ctx.fillRect(s.x * CELL + 1, s.y * CELL + 1, CELL - 2, CELL - 2); });
+    }
+    function step() {
+      if (over) return; dir = nextDir;
+      const h = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+      if (h.x < 0 || h.x >= N || h.y < 0 || h.y >= N || snake.some(s => s.x === h.x && s.y === h.y)) return gameOver();
+      snake.unshift(h);
+      if (h.x === food.x && h.y === food.y) { score++; UI.chime(true); const e = document.getElementById("snksc"); if (e) e.textContent = score; food = spawn(); }
+      else snake.pop();
+      draw();
+    }
+    function gameOver() {
+      over = true; stopGameTimer(); UI.chime(false);
+      ctx.fillStyle = "rgba(30,20,10,.6)"; ctx.fillRect(0, 0, W, W);
+      ctx.fillStyle = "#fff"; ctx.font = "bold 20px sans-serif"; ctx.textAlign = "center";
+      ctx.fillText("🍎 " + score, W / 2, W / 2);
+      const d = document.querySelector(".snake-view");
+      if (d) { const btn = UI.el(`<button class="btn primary" style="margin-top:10px">🔄 ${g("שַׂחֵק שׁוּב", "שַׂחֲקִי שׁוּב")}</button>`); btn.onclick = () => arcSnake(); d.appendChild(btn); }
+    }
+    draw(); gameTimer = setInterval(step, 190);
+  }
+
   /* ====================== ראוטר ====================== */
   function go(where) {
-    Speech.stop();
+    Speech.stop(); stopArcadeClock(); stopGameTimer();
     if (where === "home") home();
     else if (where === "parent") parent();
     else if (where === "shop") shop();
     else if (where === "room") room();
     else if (where === "coloring") coloringStudio();
     else if (where === "gradePath") gradePath();
+    else if (where === "arcade") arcade();
     else home();
   }
 
@@ -1003,6 +1158,7 @@ window.App = (function () {
            realWorld, doRealWorld, achievements, parent, confirmReset,
            shop, buyItem, equipItem, chest, claimMission, room, careNeri, coloringStudio, colorPic,
            gradePath, changeGrade, setGrade,
+           arcade, arcMemory, arcXO, arcSnake,
            playground, gameFluency, gameWheel, gameOpeningSound, gameClosingSound, gameSyllables, gameTrace,
            gameLetterHunt, gameWordBubbles, album,
            parshaChallenge, completeParsha };

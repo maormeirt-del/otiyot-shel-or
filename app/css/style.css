@@ -399,6 +399,39 @@ h2,h3{font-family:var(--font-display);letter-spacing:-.2px}
 .care-btn span{font-size:28px}
 .care-btn:active{transform:scale(.93)}
 
+/* ---------- מגרש הכף (פרס) ---------- */
+.arcade-view{text-align:center}
+.arcade-view h2{font-size:24px;margin:4px 0}
+.arcade-lock{background:#fff;border-radius:var(--r);padding:24px;box-shadow:var(--shadow);margin-top:10px}
+.al-emoji{font-size:64px}
+.mini-bar.big{height:14px;max-width:280px;margin:12px auto}
+.arcade-time{background:linear-gradient(135deg,#ffe08a,#ff9c3c);color:#5a3500;font-weight:700;border-radius:14px;padding:10px;margin-bottom:14px}
+.arcade-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.arcade-card{background:#fff;border:none;border-radius:18px;padding:18px 6px;box-shadow:var(--shadow);cursor:pointer;
+  font-family:inherit;font-weight:700;color:var(--ink2);display:flex;flex-direction:column;align-items:center;gap:6px;font-size:15px}
+.arcade-card span{font-size:40px}
+.arcade-card:active{transform:scale(.94)}
+/* זיכרון */
+.mem-view{text-align:center}.mem-view h2{font-size:23px;margin:4px 0}
+.mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:340px;margin:10px auto}
+.mem-card{aspect-ratio:1/1;border:none;border-radius:14px;background:linear-gradient(135deg,#4d96ff,#3a5ba0);
+  font-size:30px;cursor:pointer;color:#fff;box-shadow:var(--shadow)}
+.mem-card.face{background:#fff}
+.mem-card.matched{background:var(--ok-l);opacity:.7}
+/* איקס-עיגול */
+.xo-view{text-align:center}.xo-view h2{font-size:23px;margin:4px 0}
+.xo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:280px;margin:12px auto}
+.xo-cell{aspect-ratio:1/1;border:3px solid #eee;border-radius:14px;background:#fff;font-size:44px;cursor:pointer;box-shadow:var(--shadow)}
+.xo-cell:active{background:var(--cream2)}
+/* נחש */
+.snake-view{text-align:center}.snake-view h2{font-size:23px;margin:4px 0}
+.snake-score{background:var(--cream2);color:var(--gold-d);border-radius:10px;padding:2px 12px;font-size:18px;margin-right:6px}
+.snake-canvas{border-radius:16px;box-shadow:var(--shadow);background:#fff8ec;margin:8px auto;display:block;touch-action:none}
+.dpad{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:10px}
+.dpad-mid{display:flex;gap:60px}
+.dbtn{width:60px;height:60px;border:none;border-radius:16px;background:#fff;box-shadow:var(--shadow);font-size:26px;cursor:pointer;color:var(--ink2)}
+.dbtn:active{background:var(--cream2)}
+
 /* ---------- מדליות ---------- */
 .ach-rank{margin:6px 0 10px}
 .ach-count{text-align:center;color:var(--ink-soft);font-weight:600;margin-bottom:12px}

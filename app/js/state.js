@@ -20,7 +20,7 @@ window.State = (function () {
       owned: { "c-gold": true, "bg-cream": true },
       equipped: { color: "c-gold", hat: null, pet: null, prop: null, bg: "bg-cream" },
       chest: { last: null },
-      daily: { date: null, activities: 0, light: 0, claimed: false },
+      daily: { date: null, activities: 0, light: 0, claimed: false, arcadeSec: 0 },
       readDays: {},
       bestCombo: 0,
       happy: 60,
@@ -45,9 +45,11 @@ window.State = (function () {
   function today() { return new Date().toISOString().slice(0, 10); }
   function rollDaily() {
     if (progress.daily.date !== today()) {
-      progress.daily = { date: today(), activities: 0, light: 0, claimed: false };
+      progress.daily = { date: today(), activities: 0, light: 0, claimed: false, arcadeSec: 0 };
     }
   }
+  function arcadeTick(n) { rollDaily(); progress.daily.arcadeSec = (progress.daily.arcadeSec || 0) + n; saveProgress(progress); }
+  function arcadeSecLeft() { rollDaily(); return 600 - (progress.daily.arcadeSec || 0); }
   function saveProgress(p) { localStorage.setItem(GKEY, JSON.stringify(p)); }
 
   let profile = loadProfile();
@@ -207,7 +209,7 @@ window.State = (function () {
     addLight, spend, markDone, isDone, addWordsRead, touchStreak,
     owns, buy, equip, equipped, ownedCount, raiseHappy,
     rank, nextRank, chestReady, openChest, storiesDone,
-    dailyMission, claimMission, readCombo, last14Days,
+    dailyMission, claimMission, readCombo, last14Days, arcadeTick, arcadeSecLeft,
     popMilestone, milestoneById, allMilestones, reset,
     markRealWorld(id) { progress.realWorld[id] = true; addLight(3); }
   };

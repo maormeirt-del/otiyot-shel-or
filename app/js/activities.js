@@ -65,7 +65,7 @@ window.Activities = (function () {
       askMC(qbox, `אֵיזוֹ אוֹת זֹאת? <button class="speak-mini" onclick="Speech.say('${l.name}')">🔊</button>`,
         opts.map(o => `<span class="opt-letter">${o.ch}</span>`),
         opts.findIndex(o => o.ch === l.ch),
-        () => App.finishActivity(act, 5));
+        () => App.finishActivity(act, 3));
     }, 900);
   }
 
@@ -98,7 +98,7 @@ window.Activities = (function () {
           `אֵיזוֹ הֲבָרָה שָׁמַעְתָּ? <button class="speak-mini" onclick="Speech.say('${target.txt}',{keepNikud:true})">🔊 שְׁמַע</button>`,
           opts.map(o => `<span class="opt-letter nikud">${o.txt}</span>`),
           opts.findIndex(o => o === target),
-          () => App.finishActivity(act, 6));
+          () => App.finishActivity(act, 4));
         setTimeout(() => Speech.say(target.txt, { keepNikud: true }), 400);
       }
     }
@@ -132,7 +132,7 @@ window.Activities = (function () {
               b.classList.add("correct"); UI.chime(true);
               State.addWordsRead(1);
               eo.querySelectorAll("button").forEach(x => x.disabled = true);
-              setTimeout(() => { idx++; idx < words.length ? showWord() : App.finishActivity(act, 8); }, 650);
+              setTimeout(() => { idx++; idx < words.length ? showWord() : App.finishActivity(act, 5); }, 650);
             } else { b.classList.add("wrong"); UI.chime(false); setTimeout(() => b.classList.remove("wrong"), 500); }
           };
           eo.appendChild(b);
@@ -260,7 +260,7 @@ window.Activities = (function () {
     function stepQ(label, q, lvl) {
       const box = frame(`<span class="qlevel">רָמָה ${lvl}</span> ${label}`, "");
       askMC(box, q.q + ` <button class="speak-mini" onclick="Speech.say(this.dataset.t)" data-t="${q.q.replace(/"/g,'')}">🔊</button>`,
-        q.options, q.answer, () => { State.addLight(4); nextStep(); });
+        q.options, q.answer, () => { State.addLight(2); nextStep(); });
     }
 
     function stepThink(t) {
@@ -271,7 +271,7 @@ window.Activities = (function () {
            <button class="btn primary" id="thinkDone">${g("סִפַּרְתִּי ✓", "סִפַּרְתִּי ✓")}</button>
          </div>`);
       Speech.say(t.q);
-      document.getElementById("thinkDone").onclick = () => { State.addLight(3); nextStep(); };
+      document.getElementById("thinkDone").onclick = () => { State.addLight(2); nextStep(); };
     }
 
     function stepSequence(seq) {
@@ -289,7 +289,7 @@ window.Activities = (function () {
             b.disabled = true; b.classList.add("picked"); UI.chime(true);
             lineEl.appendChild(UI.el(`<span class="seq-num">${need + 1}. ${item.emoji}</span>`));
             need++;
-            if (need === seq.length) { setTimeout(() => { State.addLight(5); nextStep(); }, 500); }
+            if (need === seq.length) { setTimeout(() => { State.addLight(3); nextStep(); }, 500); }
           } else { b.classList.add("wrong"); UI.chime(false); setTimeout(() => b.classList.remove("wrong"), 500); }
         };
         grid.appendChild(b);
@@ -298,12 +298,12 @@ window.Activities = (function () {
 
     function stepEmotion(em) {
       const box = frame("💗 " + g("אֵיךְ הִרְגִּישָׁה הַדְּמוּת?", "אֵיךְ הִרְגִּישָׁה הַדְּמוּת?"), "");
-      askMC(box, em.q, em.options, em.answer, () => { State.addLight(4); nextStep(); });
+      askMC(box, em.q, em.options, em.answer, () => { State.addLight(2); nextStep(); });
     }
 
     function stepEnding(en) {
       const box = frame("✨ " + g("אֵיךְ הִמְשַׁכְתָּ אֶת הַסִּפּוּר?", "אֵיךְ הִמְשַׁכְתְּ אֶת הַסִּפּוּר?"), "");
-      askMC(box, en.q, en.options, null, () => { State.addLight(4); nextStep(); }); // אין תשובה "נכונה"
+      askMC(box, en.q, en.options, null, () => { State.addLight(2); nextStep(); }); // אין תשובה "נכונה"
     }
 
     /* השלמת מילה חסרה — נוצר אוטומטית מהסיפור (בדיקת הבנה בהקשר) */
@@ -324,7 +324,7 @@ window.Activities = (function () {
         `<div class="cloze-sentence nikud">${blanked}</div><div id="clozeq"></div>`);
       askMC(document.getElementById("clozeq"), g("אֵיזוֹ מִלָּה מַתְאִימָה?", "אֵיזוֹ מִלָּה מַתְאִימָה?"),
         opts.map(o => `<span class="nikud">${o}</span>`), opts.indexOf(target),
-        () => { State.addLight(6); nextStep(); });
+        () => { State.addLight(3); nextStep(); });
     }
 
     /* נכון / לא נכון — בדיקת הבנה */
@@ -344,7 +344,7 @@ window.Activities = (function () {
         box.querySelectorAll(".tf-btn").forEach(b => b.onclick = () => {
           const v = b.dataset.v === "true";
           if (v === item.a) {
-            b.classList.add("correct"); UI.chime(true); State.addLight(3);
+            b.classList.add("correct"); UI.chime(true); State.addLight(2);
             box.querySelectorAll(".tf-btn").forEach(x => x.disabled = true);
             fb.innerHTML = `<span class="ok">${g("כָּל הַכָּבוֹד! 🎉", "כָּל הַכָּבוֹד! 🎉")}</span>`;
             setTimeout(ask, 700);

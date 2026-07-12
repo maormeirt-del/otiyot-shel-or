@@ -5,11 +5,36 @@
    lightTotal = סך כל האור שנאסף אי-פעם (לדרגות ולמדליות)
    =========================================================== */
 window.State = (function () {
-  const PKEY = "aor_profile";
-  const GKEY = "aor_progress";
+  const LEGACY_PKEY = "aor_profile";
+  const LEGACY_GKEY = "aor_progress";
+  const CKEY = "aor_children";          // [{id,name,gender,grade,createdAt}]
+  const ACTIVE_KEY = "aor_active_child"; // sessionStorage — נשאל מחדש בכל כניסה טרייה לאפליקציה
 
-  function loadProfile() { try { return JSON.parse(localStorage.getItem(PKEY)); } catch (e) { return null; } }
-  function saveProfile(p) { localStorage.setItem(PKEY, JSON.stringify(p)); }
+  function progKey(id) { return "aor_progress_" + id; }
+  function loadChildren() { try { return JSON.parse(localStorage.getItem(CKEY)) || []; } catch (e) { return []; } }
+  function saveChildren(list) { localStorage.setItem(CKEY, JSON.stringify(list)); }
+
+  /* הגירה חד-פעמית מפרופיל יחיד ישן לרשימת ילדים */
+  function migrateLegacy() {
+    const existing = loadChildren();
+    if (existing.length) return existing;
+    try {
+      const oldP = JSON.parse(localStorage.getItem(LEGACY_PKEY));
+      if (oldP) {
+        const id = "legacy";
+        const child = Object.assign({}, oldP, { id });
+        saveChildren([child]);
+        const oldG = localStorage.getItem(LEGACY_GKEY);
+        if (oldG) localStorage.setItem(progKey(id), oldG);
+        localStorage.removeItem(LEGACY_PKEY);
+        localStorage.removeItem(LEGACY_GKEY);
+        return [child];
+      }
+    } catch (e) {}
+    return existing;
+  }
+
+  function newId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
   function defaultProgress() {
     return {
@@ -27,9 +52,9 @@ window.State = (function () {
       lastWorld: "w0"
     };
   }
-  function loadProgress() {
+  function loadProgressFor(id) {
     try {
-      const p = JSON.parse(localStorage.getItem(GKEY));
+      const p = JSON.parse(localStorage.getItem(progKey(id)));
       if (!p) return defaultProgress();
       const d = defaultProgress();
       const merged = Object.assign(d, p);
@@ -42,6 +67,7 @@ window.State = (function () {
       return merged;
     } catch (e) { return defaultProgress(); }
   }
+  function saveProgressFor(id, p) { localStorage.setItem(progKey(id), JSON.stringify(p)); }
   function today() { return new Date().toISOString().slice(0, 10); }
   function rollDaily() {
     if (progress.daily.date !== today()) {
@@ -50,10 +76,46 @@ window.State = (function () {
   }
   function arcadeTick(n) { rollDaily(); progress.daily.arcadeSec = (progress.daily.arcadeSec || 0) + n; saveProgress(progress); }
   function arcadeSecLeft() { rollDaily(); return 600 - (progress.daily.arcadeSec || 0); }
-  function saveProgress(p) { localStorage.setItem(GKEY, JSON.stringify(p)); }
+  function saveProgress(p) { if (activeId) saveProgressFor(activeId, p); }
 
-  let profile = loadProfile();
-  let progress = loadProgress();
+  let children = migrateLegacy();
+  let activeId = null;
+  let profile = null;
+  let progress = defaultProgress();
+
+  /* --- ניהול ילדים --- כל ילד = פרופיל + התקדמות נפרדים.
+     activeId לא נשמר ב-localStorage בכוונה — כל טעינה טרייה של האפליקציה (boot) שואלת מחדש "מי משחק". */
+  function listChildren() { return children.slice(); }
+  function hasChildren() { return children.length > 0; }
+  function addChild(p) {
+    const id = newId();
+    const child = { id, name: p.name, gender: p.gender, grade: p.grade, createdAt: Date.now() };
+    children.push(child); saveChildren(children);
+    saveProgressFor(id, defaultProgress());
+    return id;
+  }
+  function removeChild(id) {
+    children = children.filter(c => c.id !== id);
+    saveChildren(children);
+    localStorage.removeItem(progKey(id));
+    if (activeId === id) { activeId = null; profile = null; progress = defaultProgress(); }
+  }
+  function selectChild(id) {
+    const c = children.find(x => x.id === id);
+    if (!c) return false;
+    activeId = id; profile = c; progress = loadProgressFor(id); newlyEarned = [];
+    try { sessionStorage.setItem(ACTIVE_KEY, id); } catch (e) {}
+    return true;
+  }
+  function tryResume() {
+    let id = null;
+    try { id = sessionStorage.getItem(ACTIVE_KEY); } catch (e) {}
+    return !!(id && selectChild(id));
+  }
+  function clearActiveChild() {
+    activeId = null; profile = null; progress = defaultProgress();
+    try { sessionStorage.removeItem(ACTIVE_KEY); } catch (e) {}
+  }
 
   /* --- אוֹר --- מרכז אחד שמוסיף אור + מעדכן יומי */
   function gainLight(n) {
@@ -186,9 +248,11 @@ window.State = (function () {
   function milestoneById(id) { return MILESTONES.find(m => m.id === id); }
   function allMilestones() { return MILESTONES; }
 
+  /* אתחול/מחיקת הפרופיל הפעיל בלבד (לא נוגע בילדים האחרים) */
   function reset() {
-    localStorage.removeItem(PKEY); localStorage.removeItem(GKEY);
-    profile = null; progress = defaultProgress(); newlyEarned = [];
+    if (activeId) removeChild(activeId);
+    else { profile = null; progress = defaultProgress(); }
+    newlyEarned = [];
   }
 
   /* --- לוח האור (יומן רצף) --- */
@@ -201,11 +265,22 @@ window.State = (function () {
     return out;
   }
 
+  function setProfile(p) {
+    profile = p;
+    if (activeId) {
+      const idx = children.findIndex(c => c.id === activeId);
+      if (idx >= 0) children[idx] = Object.assign({ id: activeId }, p);
+      saveChildren(children);
+    }
+  }
+
   return {
     get profile() { return profile; },
-    setProfile(p) { profile = p; saveProfile(p); },
+    setProfile,
     get progress() { return progress; },
     saveProgress: () => saveProgress(progress),
+    get activeChildId() { return activeId; },
+    listChildren, addChild, removeChild, selectChild, tryResume, hasChildren, clearActiveChild,
     addLight, spend, markDone, isDone, addWordsRead, touchStreak,
     owns, buy, equip, equipped, ownedCount, raiseHappy,
     rank, nextRank, chestReady, openChest, storiesDone,

@@ -85,6 +85,7 @@ window.UI = (function () {
       <div class="streak-pill">🔥 ${p.streak.count}</div>
       ${chest}
       <button class="icon-btn" onclick="App.go('shop')" title="חנות">🛍️</button>
+      <button class="icon-btn" onclick="App.switchChild()" title="החלף ילד/ה">🔄</button>
     </div>`;
   }
 

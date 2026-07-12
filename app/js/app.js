@@ -15,17 +15,46 @@ window.App = (function () {
   };
 
   function boot() {
-    UI.applyBackground();
-    if (!State.profile) onboarding(); else home();
+    if (State.tryResume()) { UI.applyBackground(); home(); return; }
+    if (!State.hasChildren()) { onboarding(); return; }
+    pickChild();
   }
 
-  /* ====================== כְּנִיסָה / בְּחִירַת בֵּן-בַּת ====================== */
-  function onboarding() {
+  /* ====================== מִי מְשַׂחֵק עַכְשָׁו — נִשְׁאָל בְּכָל כְּנִיסָה טְרִיָּה ====================== */
+  function pickChild() {
+    const kids = State.listChildren();
     UI.show(`<div class="onboard">
-      <div class="hero-flame">${UI.neri(120)}</div>
+      <div class="hero-flame">${UI.neri(100, { plain: true })}</div>
+      <h1 class="brand">אוֹתִיּוֹת שֶׁל אוֹר</h1>
+      <p class="tagline">מִי מְשַׂחֵק עַכְשָׁו?</p>
+      <div class="kid-pick-grid">
+        ${kids.map(k => `<button class="kid-pick-card" data-id="${k.id}">
+            <span class="kp-ge">${k.gender === "girl" ? "👧" : "👦"}</span>
+            <span class="kp-name">${k.name}</span>
+          </button>`).join("")}
+        <button class="kid-pick-card add" id="kpAdd"><span class="kp-ge">➕</span><span class="kp-name">יֶלֶד/יַלְדָּה חֲדָשִׁים</span></button>
+      </div>
+    </div>`);
+    S().querySelectorAll(".kid-pick-card[data-id]").forEach(b => b.onclick = () => {
+      State.selectChild(b.dataset.id);
+      UI.applyBackground(); UI.chime(true);
+      home();
+    });
+    document.getElementById("kpAdd").onclick = () => onboarding(kids.length > 0);
+  }
+  function switchChild() {
+    State.clearActiveChild();
+    pickChild();
+  }
+
+  /* ====================== כְּנִיסָה / הוֹסָפַת יֶלֶד-יַלְדָּה ====================== */
+  function onboarding(canGoBack) {
+    UI.show(`<div class="onboard">
+      <div class="hero-flame">${UI.neri(120, { plain: true })}</div>
       <h1 class="brand">אוֹתִיּוֹת שֶׁל אוֹר</h1>
       <p class="tagline">כָּל יֶלֶד יָכוֹל לִקְרֹא.</p>
       <div class="ob-card">
+        ${canGoBack ? `<button class="back" id="obBack">→ חֲזָרָה לִבְחִירַת יֶלֶד</button>` : ""}
         <p class="ob-q">${UI.neriSays("שָׁלוֹם! אֲנִי נֵרִי. בּוֹאוּ נַתְחִיל מַסָּע שֶׁל אוֹר 🕯️", 64)}</p>
         <label class="ob-label">מִי מְשַׂחֵק?</label>
         <div class="gender-row">
@@ -41,6 +70,7 @@ window.App = (function () {
         <button class="btn primary big" id="obStart" disabled>יֵשׁ! מַתְחִילִים ←</button>
       </div>
     </div>`);
+    if (canGoBack) document.getElementById("obBack").onclick = pickChild;
     let chosen = null, grade = null;
     S().querySelectorAll(".gender-btn").forEach(b => b.onclick = () => {
       S().querySelectorAll(".gender-btn").forEach(x => x.classList.remove("sel"));
@@ -56,8 +86,9 @@ window.App = (function () {
       document.getElementById("obStart").disabled = !(chosen && grade && nameI.value.trim());
     }
     document.getElementById("obStart").onclick = () => {
-      State.setProfile({ name: nameI.value.trim(), gender: chosen, grade: grade, createdAt: Date.now() });
-      UI.sparkle(); UI.chime(true);
+      const id = State.addChild({ name: nameI.value.trim(), gender: chosen, grade: grade });
+      State.selectChild(id);
+      UI.applyBackground(); UI.sparkle(); UI.chime(true);
       setTimeout(home, 500);
     };
   }
@@ -337,8 +368,11 @@ window.App = (function () {
           <h3>💡 טִיפּ לַהוֹרֶה</h3>
           <p class="nikud">הַמַּטָּרָה אֵינָהּ שֶׁהַיֶּלֶד יִקְרָא נָכוֹן — אֶלָּא שֶׁיִּפְתַּח סֵפֶר מֵרְצוֹנוֹ. שִׁבְחוּ אֶת הַמַּאֲמָץ, לֹא רַק אֶת הַתּוֹצָאָה.</p>
         </div>
+        <div class="parent-section">
+          <button class="btn" onclick="App.switchChild()">🔄 הַחְלֵף יֶלֶד/יַלְדָּה</button>
+        </div>
         <div class="parent-section danger">
-          <button class="btn ghost" onclick="App.confirmReset()">🗑️ אִתְחוּל פְּרוֹפִיל</button>
+          <button class="btn ghost" onclick="App.confirmReset()">🗑️ מְחַק אֶת הַפְּרוֹפִיל שֶׁל ${UI.name()}</button>
         </div>
       </div>`);
     loadRecList();
@@ -363,7 +397,7 @@ window.App = (function () {
   }
 
   function confirmReset() {
-    if (confirm("לְאַפֵּס אֶת כָּל הַהִתְקַדְּמוּת וְהַפְּרוֹפִיל?")) { State.reset(); boot(); }
+    if (confirm(`לִמְחֹק לְצַמִיתוּת אֶת הַפְּרוֹפִיל וְהַהִתְקַדְּמוּת שֶׁל ${UI.name()}?`)) { State.reset(); boot(); }
   }
 
   /* ====================== חֲנוּת הָאוֹר ====================== */
@@ -1168,7 +1202,7 @@ window.App = (function () {
     else home();
   }
 
-  return { boot, go, home, onboarding, openWorld, openActivity, finishActivity, gradeMult,
+  return { boot, go, home, onboarding, pickChild, switchChild, openWorld, openActivity, finishActivity, gradeMult,
            realWorld, doRealWorld, achievements, parent, confirmReset,
            shop, buyItem, equipItem, chest, claimMission, room, careNeri, coloringStudio, colorPic,
            gradePath, changeGrade, setGrade,

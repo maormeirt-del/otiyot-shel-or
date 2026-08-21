@@ -751,3 +751,13 @@ h2,h3{font-family:var(--font-display);letter-spacing:-.2px}
 .pair-cell.miss{border-color:var(--bad);background:#fde7e3;animation:shake .3s}
 .q-options.row.tight .opt-btn{flex:1 1 26%;min-width:76px}
 .hint.warn{color:var(--gold-dd);font-weight:600}
+
+/* שלבי הבנה חדשים בסיפור */
+.find-target{font-size:34px;text-align:center;background:var(--cream2);border-radius:16px;padding:8px 14px;
+  display:inline-block;margin:0 auto 8px;border:2px dashed var(--gold)}
+.find-line{background:#fff;border-radius:18px;padding:14px;box-shadow:var(--shadow);font-size:24px;line-height:2;text-align:center}
+.fw{display:inline-block;padding:1px 5px;border-radius:9px;cursor:pointer;transition:.12s}
+.fw.hit{background:var(--ok-l);color:var(--ok);box-shadow:0 0 0 2px var(--ok) inset}
+.fw.miss{background:#fde7e3;animation:shake .3s}
+.vocab-word{font-size:44px;text-align:center;color:var(--gold-dd);margin-bottom:10px}
+.order-opt{font-size:19px;line-height:1.7;display:block}

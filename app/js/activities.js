@@ -17,6 +17,9 @@ window.Activities = (function () {
     return a;
   }
 
+  /* המסך עדיין חי? (מונע טיימר של מסך ישן שמצייר את עצמו מעל החדש) */
+  const alive = node => !!node && document.body.contains(node);
+
   /* ---------- כלי עזר לשאלה אמריקאית ----------
      מערבב תמיד את סדר האפשרויות: במאגר התשובה הנכונה כתובה ראשונה בכל
      240 השאלות, ובלי ערבוב אפשר לסיים את האפליקציה בלי לקרוא. */
@@ -44,7 +47,7 @@ window.Activities = (function () {
             if (combo >= 3) UI.toast(`🔥 ${combo} בָּרֶצֶף!`);
           }
           fb.innerHTML = `<span class="ok">${g("מְצֻיָּן! 🎉", "מְצֻיֶּנֶת! 🎉")}</span>`;
-          setTimeout(onCorrect, 700);
+          setTimeout(() => { if (alive(fb)) onCorrect(); }, 700);
         } else {
           combo = 0;
           b.classList.add("wrong"); UI.chime(false);
@@ -223,8 +226,11 @@ window.Activities = (function () {
       const c = s.comprehension;
       out.push(() => stepQ("מִי?", c.who, "1"));
       out.push(() => stepQ("מָה קָרָה?", c.what, "2"));
+      out.push(() => stepFindWord(s));                   // איתור מילה בטקסט (אוטומטי)
       out.push(() => stepCloze(s));                      // השלמת מילה חסרה (אוטומטי)
       out.push(() => stepQ("לָמָּה?", c.why, "3"));
+      if (s.vocab) out.push(() => stepVocab(s.vocab));    // מילה חדשה
+      if (s.pages.length >= 5) out.push(() => stepOrder2(s)); // מה קרה קודם (אוטומטי)
       if (s.trueFalse) out.push(() => stepTrueFalse(s.trueFalse)); // נכון/לא נכון
       out.push(() => stepThink(c.think));
       if (s.sequence) out.push(() => stepSequence(s.sequence));
@@ -309,7 +315,7 @@ window.Activities = (function () {
             b.disabled = true; b.classList.add("picked"); UI.chime(true);
             lineEl.appendChild(UI.el(`<span class="seq-num">${need + 1}. ${item.emoji}</span>`));
             need++;
-            if (need === seq.length) { setTimeout(() => { al(3); nextStep(); }, 500); }
+            if (need === seq.length) { setTimeout(() => { if (alive(lineEl)) { al(3); nextStep(); } }, 500); }
           } else { b.classList.add("wrong"); UI.chime(false); setTimeout(() => b.classList.remove("wrong"), 500); }
         };
         grid.appendChild(b);
@@ -347,6 +353,51 @@ window.Activities = (function () {
         () => { al(3); nextStep(); });
     }
 
+    /* אִתּוּר מִלָּה בַּטֶּקְסְט — סריקה חזותית, גשר בין זיהוי אותיות להבנה */
+    function stepFindWord(s) {
+      const bare = t => t.replace(/[֑-ׇ]/g, "").replace(/["'.,!?:;]/g, "");
+      const pi = Math.floor(Math.random() * s.pages.length);
+      const toks = s.pages[pi].split(" ");
+      /* לא המילה הראשונה — אחרת היא יושבת בדיוק מתחת לכרטיס ואין מה לחפש */
+      let cands = toks.map((t, i) => ({ t, i })).filter(x => x.i > 0 && bare(x.t).length >= 4);
+      if (!cands.length) cands = toks.map((t, i) => ({ t, i })).filter(x => x.i > 0);
+      if (!cands.length) cands = toks.map((t, i) => ({ t, i }));
+      const target = cands[Math.floor(Math.random() * cands.length)].t;
+      const box = frame("🔍 " + g("מְצָא אֶת הַמִּלָּה", "מִצְאִי אֶת הַמִּלָּה"),
+        `<div class="find-target nikud">${target} <button class="speak-mini" onclick="Speech.say('${bare(target)}')">🔊</button></div>
+         <p class="hint">${g("הַקֵּשׁ עַל הַמִּלָּה הַזֹּאת בְּתוֹךְ הַשּׁוּרָה", "הַקִּישִׁי עַל הַמִּלָּה הַזֹּאת בְּתוֹךְ הַשּׁוּרָה")}</p>
+         <div class="find-line ${s.level === 5 ? "" : "nikud"}">
+           ${toks.map((t, i) => `<span class="fw" data-i="${i}">${t}</span>`).join(" ")}
+         </div>`);
+      Speech.say(bare(target));
+      box.querySelectorAll(".fw").forEach(sp => sp.onclick = () => {
+        if (bare(sp.textContent) === bare(target)) {
+          sp.classList.add("hit"); UI.chime(true);
+          setTimeout(() => { if (alive(sp)) { al(2); nextStep(); } }, 550);
+        } else { sp.classList.add("miss"); UI.chime(false); setTimeout(() => sp.classList.remove("miss"), 450); }
+      });
+    }
+
+    /* מִלָּה חֲדָשָׁה — הרחבת אוצר מילים (מגיע מהסיפור עצמו) */
+    function stepVocab(v) {
+      const box = frame("💎 " + g("מִלָּה חֲדָשָׁה", "מִלָּה חֲדָשָׁה"),
+        `<div class="vocab-word nikud">${v.w}</div><div id="vq"></div>`);
+      Speech.say(v.w.replace(/[֑-ׇ]/g, ""));
+      askMC(document.getElementById("vq"), v.q, v.options, v.answer,
+        () => { al(3); nextStep(); });
+    }
+
+    /* מָה קָרָה קֹדֶם — רצף אירועים אמיתי מתוך הסיפור */
+    function stepOrder2(s) {
+      const n = s.pages.length;
+      const i = Math.floor(Math.random() * (n - 3));
+      const j = i + 2 + Math.floor(Math.random() * Math.min(3, n - i - 2));
+      const box = frame("⏳ " + g("מָה קָרָה קֹדֶם?", "מָה קָרָה קֹדֶם?"), "");
+      askMC(box, g("אֵיזֶה דָּבָר קָרָה קֹדֶם בַּסִּפּוּר?", "אֵיזֶה דָּבָר קָרָה קֹדֶם בַּסִּפּוּר?"),
+        [`<span class="nikud order-opt">${s.pages[i]}</span>`, `<span class="nikud order-opt">${s.pages[j]}</span>`], 0,
+        () => { al(3); nextStep(); });
+    }
+
     /* נכון / לא נכון — בדיקת הבנה */
     function stepTrueFalse(list) {
       list = shuffle(list);   // אחרת הסדר בדאטה (נכון, לא-נכון, נכון...) צפוי מראש
@@ -368,7 +419,7 @@ window.Activities = (function () {
             b.classList.add("correct"); UI.chime(true); State.addLight(2);
             box.querySelectorAll(".tf-btn").forEach(x => x.disabled = true);
             fb.innerHTML = `<span class="ok">${g("כָּל הַכָּבוֹד! 🎉", "כָּל הַכָּבוֹד! 🎉")}</span>`;
-            setTimeout(ask, 700);
+            setTimeout(() => { if (alive(fb)) ask(); }, 700);
           } else {
             b.classList.add("wrong"); UI.chime(false);
             fb.innerHTML = `<span class="retry">חֲשֹׁב שׁוּב 💭</span>`;

@@ -16,6 +16,8 @@
     return a;
   }
   const strip = s => s.replace(/[֑-ׇ]/g, "");
+  /* המסך עדיין חי? מונע טיימר של מסך ישן שמדלג שלב */
+  const alive = node => !!node && document.body.contains(node);
   const pick = a => a[Math.floor(Math.random() * a.length)];
 
   /* פיצול מילה מנוקדת ליחידות "אות + הניקוד שלה" */
@@ -74,7 +76,7 @@
           b.classList.add("correct"); UI.chime(true);
           opts.querySelectorAll("button").forEach(x => x.classList.add("locked"));
           fb.innerHTML = `<span class="ok">${g("מְצֻיָּן! 🎉", "מְצֻיֶּנֶת! 🎉")}</span>`;
-          setTimeout(onDone, 650);
+          setTimeout(() => { if (alive(fb)) onDone(); }, 650);
         } else {
           b.classList.add("wrong"); UI.chime(false);
           fb.innerHTML = `<span class="retry">${cfg.hint || g("כִּמְעַט! הִסְתַּכֵּל שׁוּב 💪", "כִּמְעַט! הִסְתַּכְּלִי שׁוּב 💪")}</span>`;
@@ -136,7 +138,7 @@
         if (b.dataset.c === target) {
           b.classList.add("hit"); UI.chime(true); found++;
           document.getElementById("fnd").textContent = found;
-          if (found === tCount) { State.addLight(2); setTimeout(ctx.next, 600); }
+          if (found === tCount) { State.addLight(2); setTimeout(() => { if (alive(b)) ctx.next(); }, 600); }
         } else {
           b.classList.add("miss"); UI.chime(false);
           setTimeout(() => b.classList.remove("miss"), 400);
@@ -181,7 +183,7 @@
           Speech.say(L[need].name);
           document.getElementById("line").appendChild(UI.el(`<span class="abc-chip">${L[need].ch}</span>`));
           need++;
-          if (need === L.length) { State.addLight(4); setTimeout(ctx.next, 700); }
+          if (need === L.length) { State.addLight(4); setTimeout(() => { if (alive(b)) ctx.next(); }, 700); }
           else document.getElementById("want").textContent = L[need].name;
         } else { b.classList.add("miss"); UI.chime(false); setTimeout(() => b.classList.remove("miss"), 400); }
       });
@@ -262,7 +264,7 @@
         if (sp.classList.contains("is-t")) {
           sp.classList.add("hit"); UI.chime(true); found++;
           document.getElementById("fnd").textContent = found;
-          if (found === total) { State.addLight(3); setTimeout(ctx.next, 700); }
+          if (found === total) { State.addLight(3); setTimeout(() => { if (alive(sp)) ctx.next(); }, 700); }
         } else {
           sp.classList.add("miss"); UI.chime(false);
           setTimeout(() => sp.classList.remove("miss"), 400);
@@ -377,7 +379,7 @@
           if (need === us.length) {
             State.addWordsRead(1); State.addLight(3);
             setTimeout(() => { Speech.say(strip(w.w)); }, 200);
-            setTimeout(ctx.next, 1100);
+            setTimeout(() => { if (alive(b)) ctx.next(); }, 1100);
           }
         } else { b.classList.add("miss"); UI.chime(false); setTimeout(() => b.classList.remove("miss"), 400); }
       });
@@ -453,7 +455,7 @@
         if (sel.dataset.c === b.dataset.c) {
           [sel, b].forEach(x => { x.disabled = true; x.classList.remove("sel"); x.classList.add("matched"); });
           UI.chime(true); sel = null; done++;
-          if (done === picks.length) { State.addLight(3); setTimeout(ctx.next, 600); }
+          if (done === picks.length) { State.addLight(3); setTimeout(() => { if (alive(b)) ctx.next(); }, 600); }
         } else {
           b.classList.add("miss"); UI.chime(false);
           const s = sel; sel = null;

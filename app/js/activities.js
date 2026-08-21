@@ -7,8 +7,25 @@ window.Activities = (function () {
   const g = UI.g;
   let combo = 0;  // רצף תשובות נכונות (קומבו)
 
-  /* ---------- כלי עזר לשאלה אמריקאית ---------- */
-  function askMC(container, q, options, answerIdx, onCorrect) {
+  /* ערבוב הוגן (Fisher-Yates). sort(()=>Math.random()-.5) מוטה ולא באמת מערבב. */
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  /* ---------- כלי עזר לשאלה אמריקאית ----------
+     מערבב תמיד את סדר האפשרויות: במאגר התשובה הנכונה כתובה ראשונה בכל
+     240 השאלות, ובלי ערבוב אפשר לסיים את האפליקציה בלי לקרוא. */
+  function askMC(container, q, options, answerIdx, onCorrect, cfg) {
+    if (!(cfg && cfg.keepOrder) && options.length > 1) {
+      const order = shuffle(options.map((_, i) => i));
+      options = order.map(i => options[i]);
+      if (answerIdx != null) answerIdx = order.indexOf(answerIdx);
+    }
     container.innerHTML = `<div class="q-card">
       <div class="q-text">${q}</div>
       <div class="q-options"></div>
@@ -332,6 +349,7 @@ window.Activities = (function () {
 
     /* נכון / לא נכון — בדיקת הבנה */
     function stepTrueFalse(list) {
+      list = shuffle(list);   // אחרת הסדר בדאטה (נכון, לא-נכון, נכון...) צפוי מראש
       let i = 0;
       function ask() {
         if (i >= list.length) return nextStep();

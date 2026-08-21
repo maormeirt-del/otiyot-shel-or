@@ -654,3 +654,100 @@ h2,h3{font-family:var(--font-display);letter-spacing:-.2px}
 .tf-fb .ok{color:var(--ok)} .tf-fb .retry{color:var(--gold-d)}
 
 @media(min-width:600px){ .big-letter{font-size:170px} }
+
+/* ===========================================================
+   אֲתַגְּרֵי הָאוֹתִיּוֹת — פעילויות זיהוי ארוכות
+   =========================================================== */
+.stage-bar{display:flex;align-items:center;gap:6px;justify-content:center;margin:2px 0 10px;flex-wrap:wrap}
+.sdot{width:9px;height:9px;border-radius:50%;background:#e8dcc4}
+.sdot.on{background:var(--gold)}
+.sdot.cur{background:var(--gold-d);transform:scale(1.4)}
+.stage-txt{font-size:13px;color:var(--ink-soft);margin-inline-start:8px;font-family:var(--font-read)}
+.q-options.row{flex-direction:row;flex-wrap:wrap;justify-content:center}
+.q-options.row .opt-btn{flex:1 1 44%;min-width:120px}
+.big-opt{font-size:30px;line-height:1.5}
+.word-pic{font-size:76px;text-align:center;margin:4px 0 10px;filter:drop-shadow(0 8px 14px rgba(120,80,20,.18))}
+
+/* תאומות */
+.twin-row{display:flex;gap:12px;justify-content:center;margin-bottom:12px}
+.twin-card{flex:1;background:#fff;border:3px solid #eee;border-radius:20px;padding:14px 6px;cursor:pointer;
+  font-family:inherit;box-shadow:var(--shadow);transition:.15s;display:flex;flex-direction:column;align-items:center;gap:4px}
+.twin-card:active{transform:scale(.96)}
+.twin-card.tapped{border-color:var(--gold);background:var(--cream2)}
+.twin-ch{font-family:"Frank Ruhl Libre",serif;font-size:78px;line-height:1;color:var(--ink)}
+.twin-name{font-size:17px;color:var(--ink2);font-weight:700}
+.tip-card{background:var(--cream2);border:2px dashed var(--gold);border-radius:18px;padding:12px 14px;
+  font-size:17px;line-height:1.7;color:var(--ink);margin-bottom:12px}
+.sift-count{text-align:center;font-family:var(--font-read);font-size:17px;color:var(--ink2);margin-bottom:8px}
+.sift-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sift-cell{font-family:"Frank Ruhl Libre",serif;font-size:40px;border:3px solid #eee;background:#fff;
+  border-radius:16px;padding:8px 0;cursor:pointer;box-shadow:var(--shadow);transition:.12s}
+.sift-cell:active{transform:scale(.92)}
+.sift-cell.hit{border-color:var(--ok);background:var(--ok-l);color:var(--ok)}
+.sift-cell.miss{border-color:var(--bad);background:#fde7e3;animation:shake .3s}
+
+/* אלף-בית */
+.abc-next{text-align:center;font-size:18px;margin-bottom:8px}
+.abc-next b{color:var(--gold-dd)}
+.abc-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:10px}
+.abc-cell{font-family:"Frank Ruhl Libre",serif;font-size:30px;border:2px solid #eee;background:#fff;
+  border-radius:12px;padding:6px 0;cursor:pointer;transition:.12s}
+.abc-cell.done{border-color:var(--ok);background:var(--ok-l);opacity:.55}
+.abc-cell.miss{border-color:var(--bad);background:#fde7e3;animation:shake .3s}
+.abc-line{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;min-height:34px}
+.abc-chip{font-family:"Frank Ruhl Libre",serif;font-size:24px;background:var(--cream2);border-radius:8px;padding:1px 7px}
+.abc-ask{text-align:center;font-size:20px;margin-bottom:6px}
+.abc-big{font-family:"Frank Ruhl Libre",serif;font-size:52px;color:var(--gold-dd);vertical-align:middle}
+.abc-round{text-align:center;font-size:14px;color:var(--ink-soft);margin-bottom:10px;font-family:var(--font-read)}
+.chain-row{display:flex;gap:8px;justify-content:center;margin-bottom:10px}
+.chain-cell{font-family:"Frank Ruhl Libre",serif;font-size:44px;background:#fff;border:3px solid #eee;
+  border-radius:14px;width:62px;text-align:center;box-shadow:var(--shadow)}
+.chain-cell.hole{border-style:dashed;border-color:var(--gold);color:var(--gold-dd);background:var(--cream2)}
+
+/* ציד בטקסט */
+.hunt-count{text-align:center;font-family:var(--font-read);font-size:17px;color:var(--ink2);margin-bottom:8px}
+.hunt-text{background:#fff;border-radius:20px;padding:16px 14px;box-shadow:var(--shadow);
+  font-size:30px;line-height:2.1;text-align:center;margin-bottom:12px}
+.ht-word{white-space:nowrap;display:inline-block;margin:0 3px}
+.ht-l{display:inline-block;padding:0 1px;border-radius:7px;cursor:pointer;transition:.12s}
+.ht-l.hit{background:var(--ok-l);color:var(--ok);box-shadow:0 0 0 2px var(--ok) inset}
+.ht-l.miss{background:#fde7e3;animation:shake .3s}
+
+/* סופיות */
+.fin-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.fin-card{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fff;border:3px solid #eee;
+  border-radius:16px;padding:10px 14px;cursor:pointer;font-family:inherit;box-shadow:var(--shadow);transition:.15s}
+.fin-card.tapped{border-color:var(--gold);background:var(--cream2)}
+.fin-pair{font-family:"Frank Ruhl Libre",serif;font-size:30px;color:var(--ink)}
+.fin-big{color:var(--gold-dd);font-size:38px}
+.fin-name{font-size:15px;color:var(--ink2);font-weight:700}
+.fin-word{font-size:19px}
+.fin-focus{font-family:"Frank Ruhl Libre",serif;font-size:110px;line-height:1;text-align:center;color:var(--gold-dd)}
+
+/* בונים מילה */
+.build-slots{display:flex;gap:6px;justify-content:center;margin:10px 0 16px}
+.build-slot{font-family:"Frank Ruhl Libre",serif;font-size:38px;min-width:54px;height:64px;line-height:64px;
+  border:3px dashed #e0d3b8;border-radius:14px;background:#fffdf7;text-align:center}
+.build-slot.filled{border-style:solid;border-color:var(--ok);background:var(--ok-l)}
+.build-tiles{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.build-tile{font-family:"Frank Ruhl Libre",serif;font-size:38px;min-width:60px;border:3px solid #eee;background:#fff;
+  border-radius:14px;padding:6px 4px;cursor:pointer;box-shadow:var(--shadow);transition:.12s}
+.build-tile:active{transform:scale(.92)}
+.build-tile.used{opacity:.25}
+.build-tile.miss{border-color:var(--bad);background:#fde7e3;animation:shake .3s}
+
+/* בגדים אחרים */
+.dress-row{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;background:#fff;
+  border:3px solid #eee;border-radius:16px;padding:8px 12px;margin-bottom:8px;cursor:pointer;box-shadow:var(--shadow);transition:.15s}
+.dress-row.tapped{border-color:var(--gold);background:var(--cream2)}
+.dress-ch{font-size:40px;line-height:1.2;color:var(--ink)}
+.dress-name{font-size:15px;color:var(--ink2);font-weight:700}
+.pair-cols{display:flex;gap:18px;justify-content:center}
+.pair-col{display:flex;flex-direction:column;gap:8px;flex:1}
+.pair-cell{font-size:40px;border:3px solid #eee;background:#fff;border-radius:14px;padding:6px 0;cursor:pointer;
+  box-shadow:var(--shadow);transition:.12s}
+.pair-cell.sel{border-color:var(--gold);background:var(--cream2);transform:scale(1.04)}
+.pair-cell.matched{border-color:var(--ok);background:var(--ok-l);opacity:.55}
+.pair-cell.miss{border-color:var(--bad);background:#fde7e3;animation:shake .3s}
+.q-options.row.tight .opt-btn{flex:1 1 26%;min-width:76px}
+.hint.warn{color:var(--gold-dd);font-weight:600}

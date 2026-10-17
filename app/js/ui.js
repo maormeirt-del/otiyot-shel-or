@@ -106,9 +106,17 @@ window.UI = (function () {
 
   /* צליל הצלחה קצר (Web Audio — חינם, בלי קבצים) */
   let actx = null;
-  function chime(ok) {
+  // יוצר/מעיר את ההקשר. בכרום ובאייפון הוא נולד "מושהה" או נעצר אחרי מעבר אפליקציה, ואז שותק.
+  function wakeAudio() {
     try {
       actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state !== "running") actx.resume();
+    } catch (e) {}
+    return actx;
+  }
+  function chime(ok) {
+    try {
+      if (!wakeAudio()) return;
       const notes = ok ? [523, 659, 784] : [330, 247];
       notes.forEach((f, i) => {
         const o = actx.createOscillator(), g2 = actx.createGain();
@@ -167,6 +175,6 @@ window.UI = (function () {
     w.document.close(); setTimeout(() => w.print(), 400);
   }
 
-  return { g, name, el, screen, show, neri, neriSays, topbar, sparkle, chime, toast,
+  return { g, name, el, screen, show, neri, neriSays, topbar, sparkle, chime, wakeAudio, toast,
            celebrateMilestones, showMilestoneCard, printCard, applyBackground, rankBar };
 })();

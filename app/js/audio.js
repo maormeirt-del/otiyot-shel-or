@@ -4,32 +4,75 @@
    הקלטות נשמרות ב-IndexedDB (מקומי במכשיר בלבד).
    =========================================================== */
 window.Speech = (function () {
+  const has = 'speechSynthesis' in window;
   let heVoice = null;
   function pickVoice() {
     const voices = speechSynthesis.getVoices() || [];
-    heVoice = voices.find(v => /he|iw|hebrew/i.test(v.lang)) ||
-              voices.find(v => /he|iw|hebrew/i.test(v.name)) || null;
+    // רק קול עברי אמיתי. קול זר (למשל Shelley) שותק על טקסט עברי.
+    heVoice = voices.find(v => /^(he|iw)([-_]|$)/i.test(v.lang)) ||
+              voices.find(v => /hebrew|עברית|carmit|כרמית/i.test(v.name)) || null;
   }
-  if ('speechSynthesis' in window) {
+  if (has) {
     pickVoice();
     speechSynthesis.onvoiceschanged = pickVoice;
   }
   // הסרת ניקוד עוזרת למנועי TTS רבים לבטא נכון
   function strip(t) { return (t || "").replace(/[֑-ׇ]/g, ""); }
 
+  /* שחרור הקול בנגיעה הראשונה: אייפון לא משמיע הקראה עד שהיא התחילה מתוך נגיעה,
+     ובלי audioSession=playback מתג השקט משתיק את הצלילים. */
+  let unlocked = false;
+  function unlock() {
+    if (unlocked) return; unlocked = true;
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
+    if (window.UI && UI.wakeAudio) UI.wakeAudio();
+    if (has && !speechSynthesis.speaking && !speechSynthesis.pending) {
+      try { const w = new SpeechSynthesisUtterance(" "); w.volume = 0; speechSynthesis.speak(w); } catch (e) {}
+    }
+    ["pointerdown", "touchend", "keydown"].forEach(ev => document.removeEventListener(ev, unlock, true));
+  }
+  ["pointerdown", "touchend", "keydown"].forEach(ev => document.addEventListener(ev, unlock, true));
+
+  /* השמעה בטוחה: בספארי speak מיד אחרי cancel נבלע, וכרום באנדרואיד נתקע לפעמים.
+     current מחזיק את ההקראה כדי שלא תיאסף לפני onend. */
+  let current = null, gen = 0;
+  function play(u) {
+    const my = ++gen;
+    current = u;
+    let started = false;
+    const prevStart = u.onstart;
+    u.onstart = e => { started = true; prevStart && prevStart(e); };
+    const go = () => {
+      if (my !== gen) return;
+      if (speechSynthesis.paused) speechSynthesis.resume();
+      speechSynthesis.speak(u);
+      // שומר: אם לא התחיל תוך 1.5 שנ׳ (המנוע נתקע), מאפסים ומנסים פעם אחת נוספת
+      setTimeout(() => {
+        if (my !== gen || started) return;
+        speechSynthesis.cancel();
+        setTimeout(() => { if (my === gen && !started) speechSynthesis.speak(u); }, 80);
+      }, 1500);
+    };
+    if (speechSynthesis.speaking || speechSynthesis.pending) {
+      speechSynthesis.cancel();
+      setTimeout(go, 60);
+    } else go();
+  }
+  function make(text, rate, pitch) {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = heVoice ? heVoice.lang : "he-IL";
+    if (heVoice) u.voice = heVoice;
+    u.rate = rate; u.pitch = pitch;
+    return u;
+  }
+
   function say(text, opts) {
     opts = opts || {};
-    if (!('speechSynthesis' in window)) return;
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(opts.keepNikud ? text : strip(text));
-    u.lang = "he-IL";
-    if (heVoice) u.voice = heVoice;
-    u.rate = opts.rate || 0.85;   // קצב איטי לילדים
-    u.pitch = opts.pitch || 1.05;
-    speechSynthesis.speak(u);
+    if (!has) return;
+    play(make(opts.keepNikud ? text : strip(text), opts.rate || 0.85, opts.pitch || 1.05));  // קצב איטי לילדים
   }
-  function stop() { if ('speechSynthesis' in window) speechSynthesis.cancel(); }
-  function available() { return 'speechSynthesis' in window; }
+  function stop() { gen++; if (has) speechSynthesis.cancel(); }
+  function available() { return has; }
 
   /* קריאה עם הדגשת מילה (קריוקי). onWord(index) נקרא לכל מילה. */
   function wordStarts(clean) {
@@ -44,13 +87,11 @@ window.Speech = (function () {
   function sayHighlight(text, onWord, onEnd) {
     const clean = strip(text);
     const words = clean.split(/\s+/).filter(Boolean);
-    if (!('speechSynthesis' in window)) {  // אין TTS — מדגיש לפי טיימר בלבד
+    if (!has) {  // אין TTS — מדגיש לפי טיימר בלבד
       let i = 0; const t = setInterval(() => { if (i >= words.length) { clearInterval(t); onEnd && onEnd(); return; } onWord && onWord(i++); }, 480);
       return;
     }
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(clean);
-    u.lang = "he-IL"; if (heVoice) u.voice = heVoice; u.rate = 0.8; u.pitch = 1.05;
+    const u = make(clean, 0.8, 1.05);
     const starts = wordStarts(clean);
     let usedBoundary = false, timer = null, ti = 0;
     u.onboundary = e => {
@@ -60,7 +101,7 @@ window.Speech = (function () {
       onWord && onWord(idx);
     };
     u.onend = () => { if (timer) clearInterval(timer); onEnd && onEnd(); };
-    speechSynthesis.speak(u);
+    play(u);
     // גיבוי: אם onboundary לא נתמך, מדגישים לפי טיימר
     timer = setInterval(() => {
       if (usedBoundary) { clearInterval(timer); timer = null; return; }

@@ -141,7 +141,7 @@ h2,h3{font-family:var(--font-display);letter-spacing:-.2px}
 .world-bar{height:9px;background:#eee;border-radius:6px;overflow:hidden}
 .world-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--amber),var(--gold-d));border-radius:6px;transition:width .5s}
 .world-count{font-size:12px;color:var(--ink-soft);margin-top:4px}
-.home-actions{display:flex;gap:10px;margin-top:18px}
+.home-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
 .tile{flex:1;background:#fff;border:none;border-radius:18px;padding:14px 6px;box-shadow:var(--shadow);
   font-weight:700;color:var(--ink2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;font-size:14px}
 .tile span{font-size:26px}

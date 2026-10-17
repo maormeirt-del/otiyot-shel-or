@@ -180,7 +180,7 @@ window.App = (function () {
   function completeParsha(label) {
     const first = State.markDone("parsha-" + label, 15);
     UI.sparkle(); UI.chime(true);
-    if (first) setTimeout(() => Speech.say(`כל הכבוד ${UI.name()}!`), 350);
+    if (first) setTimeout(() => Speech.say(`כָּל הַכָּבוֹד ${UI.name()}!`), 350);
     parshaChallenge();
     setTimeout(() => UI.celebrateMilestones(), 300);
   }
@@ -278,7 +278,7 @@ window.App = (function () {
     const first = State.markDone(act.id, lightReward);
     Speech.stop();
     UI.sparkle(); UI.chime(true);
-    setTimeout(() => Speech.say(`כל הכבוד ${UI.name()}!`), 380);  // שבח אישי בקול
+    setTimeout(() => Speech.say(`כָּל הַכָּבוֹד ${UI.name()}!`), 380);  // שבח אישי בקול
     UI.show(`<div class="done-screen">
       <div class="done-flame">${UI.neri(110)}</div>
       <h2>${g("כָּל הַכָּבוֹד!", "כָּל הַכָּבוֹד!")} 🎉</h2>
@@ -549,7 +549,7 @@ window.App = (function () {
       const p = passages[pi];
       State.markDone("fluency-" + p.id, 12);
       UI.sparkle(); UI.chime(true);
-      setTimeout(() => Speech.say(`כל הכבוד ${UI.name()}! קראת בשטף!`), 350);
+      setTimeout(() => Speech.say(`כָּל הַכָּבוֹד ${UI.name()}! ${g("קָרָאתָ", "קָרָאת")} בְּשֶׁטֶף!`), 350);
       UI.toast(g("🏆 אַלּוּף שֶׁטֶף! קָרָאתָ 3 פְּעָמִים!", "🏆 אַלּוּפַת שֶׁטֶף! קָרָאתְ 3 פְּעָמִים!"));
       setTimeout(() => UI.celebrateMilestones(), 300);
       setTimeout(() => { pi = (pi + 1) % passages.length; render(); }, 1600);
@@ -946,7 +946,7 @@ window.App = (function () {
     UI.show(`${UI.topbar()}
       <div class="color-view">
         <button class="back" onclick="App.coloringStudio()">→ חֲזָרָה לַסְּטוּדִיוֹ</button>
-        <button class="color-name nikud" onclick="Speech.say('${pic.word}')">${pic.name} 🔊</button>
+        <button class="color-name nikud" onclick="Speech.say('${pic.name}')">${pic.name} 🔊</button>
         <div class="color-stage brush" id="cstage">
           <canvas id="cpaint" class="paint-canvas" width="600" height="600"></canvas>
           <div class="line-overlay">${pic.svg}</div>

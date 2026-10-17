@@ -364,12 +364,12 @@ window.Activities = (function () {
       if (!cands.length) cands = toks.map((t, i) => ({ t, i }));
       const target = cands[Math.floor(Math.random() * cands.length)].t;
       const box = frame("🔍 " + g("מְצָא אֶת הַמִּלָּה", "מִצְאִי אֶת הַמִּלָּה"),
-        `<div class="find-target nikud">${target} <button class="speak-mini" onclick="Speech.say('${bare(target)}')">🔊</button></div>
+        `<div class="find-target nikud">${target} <button class="speak-mini" onclick="Speech.say(this.dataset.t)" data-t="${target.replace(/"/g, '')}">🔊</button></div>
          <p class="hint">${g("הַקֵּשׁ עַל הַמִּלָּה הַזֹּאת בְּתוֹךְ הַשּׁוּרָה", "הַקִּישִׁי עַל הַמִּלָּה הַזֹּאת בְּתוֹךְ הַשּׁוּרָה")}</p>
          <div class="find-line ${s.level === 5 ? "" : "nikud"}">
            ${toks.map((t, i) => `<span class="fw" data-i="${i}">${t}</span>`).join(" ")}
          </div>`);
-      Speech.say(bare(target));
+      Speech.say(target);
       box.querySelectorAll(".fw").forEach(sp => sp.onclick = () => {
         if (bare(sp.textContent) === bare(target)) {
           sp.classList.add("hit"); UI.chime(true);
@@ -382,7 +382,7 @@ window.Activities = (function () {
     function stepVocab(v) {
       const box = frame("💎 " + g("מִלָּה חֲדָשָׁה", "מִלָּה חֲדָשָׁה"),
         `<div class="vocab-word nikud">${v.w}</div><div id="vq"></div>`);
-      Speech.say(v.w.replace(/[֑-ׇ]/g, ""));
+      Speech.say(v.w);
       askMC(document.getElementById("vq"), v.q, v.options, v.answer,
         () => { al(3); nextStep(); });
     }

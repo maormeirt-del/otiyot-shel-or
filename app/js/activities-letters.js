@@ -131,7 +131,7 @@
         `<p class="hint nikud">יֵשׁ כָּאן ${tCount} פְּעָמִים ${tName}. מָצְאוּ אֶת כֻּלָּן!</p>
          <div class="sift-count">נִמְצְאוּ <b id="fnd">0</b> מִתּוֹךְ ${tCount}</div>
          <div class="sift-grid">${cells.map(c => `<button class="sift-cell" data-c="${c}">${c}</button>`).join("")}</div>`);
-      Speech.say(`סמנו רק את האות ${tName}`);
+      Speech.say(`סַמְּנוּ רַק אֶת הָאוֹת ${tName}`);
       let found = 0;
       box.querySelectorAll(".sift-cell").forEach(b => b.onclick = () => {
         if (b.classList.contains("hit")) return;
@@ -153,7 +153,7 @@
         `<div class="word-pic">${w.emoji}</div><div id="q"></div>`);
       Speech.say(w.real);
       ask(document.getElementById("q"),
-        `${g("אֵיזוֹ מִלָּה כְּתוּבָה נָכוֹן?", "אֵיזוֹ מִלָּה כְּתוּבָה נָכוֹן?")} <button class="speak-mini" onclick="Speech.say('${strip(w.real)}')">🔊</button>`,
+        `${g("אֵיזוֹ מִלָּה כְּתוּבָה נָכוֹן?", "אֵיזוֹ מִלָּה כְּתוּבָה נָכוֹן?")} <button class="speak-mini" onclick="Speech.say('${w.real}')">🔊</button>`,
         [`<span class="nikud big-opt">${w.real}</span>`, `<span class="nikud big-opt">${w.fake}</span>`], 0,
         () => { State.addLight(2); ctx.next(); },
         { row: true, hint: `💡 ${p.tip}` });
@@ -204,7 +204,7 @@
         const box = stage(ctx, `➡️ מִי בָּא ${label}?`,
           `<div class="abc-ask nikud">מִי בָּא ${label} הָאוֹת <b class="abc-big">${L[idx].ch}</b>?</div>
            <div class="abc-round">סִבּוּב ${round} מִתּוֹךְ ${total}</div><div id="q"></div>`);
-        Speech.say(`מי בא ${label} האות ${L[idx].name}`);
+        Speech.say(`מִי בָּא ${label} הָאוֹת ${L[idx].name}`);
         ask(document.getElementById("q"), "",
           [target, ...others].map(o => `<span class="opt-letter">${o.ch}</span>`), 0, go, { row: true, tight: true });
       }
@@ -257,7 +257,7 @@
          <div class="hunt-text nikud">${html}</div>
          <button class="speak-mini" id="hear">🔊 ${g("קְרָא לִי אֶת הַמִּשְׁפָּט", "קִרְאִי לִי אֶת הַמִּשְׁפָּט")}</button>`);
       document.getElementById("hear").onclick = () => Speech.say(t.text);
-      Speech.say(`צוד את האות ${lname}`);
+      Speech.say(`${g("צוּד", "צוּדִי")} אֶת הָאוֹת ${lname}`);
       let found = 0;
       box.querySelectorAll(".ht-l").forEach(sp => sp.onclick = () => {
         if (sp.classList.contains("hit")) return;
@@ -291,7 +291,7 @@
       const heard = new Set();
       box.querySelectorAll(".fin-card").forEach(b => b.onclick = () => {
         const f = F.find(x => x.ch === b.dataset.c);
-        Speech.say(`${f.name}. ${strip(f.word)}`); b.classList.add("tapped"); heard.add(f.ch);
+        Speech.say(`${f.name}. ${f.word}`); b.classList.add("tapped"); heard.add(f.ch);
         if (heard.size === F.length) document.getElementById("go").disabled = false;
       });
       document.getElementById("go").onclick = ctx.next;
@@ -340,9 +340,9 @@
         const box = stage(ctx, "✍️ אֵיךְ כּוֹתְבִים נָכוֹן?",
           `<div class="word-pic">${f.emoji}</div>
            <div class="abc-round">${i} מִתּוֹךְ ${F.length}</div><div id="q"></div>`);
-        Speech.say(strip(f.word));
+        Speech.say(f.word);
         ask(document.getElementById("q"),
-          `${g("אֵיזוֹ כְּתִיבָה נְכוֹנָה?", "אֵיזוֹ כְּתִיבָה נְכוֹנָה?")} <button class="speak-mini" onclick="Speech.say('${strip(f.word)}')">🔊</button>`,
+          `${g("אֵיזוֹ כְּתִיבָה נְכוֹנָה?", "אֵיזוֹ כְּתִיבָה נְכוֹנָה?")} <button class="speak-mini" onclick="Speech.say('${f.word}')">🔊</button>`,
           [`<span class="nikud big-opt">${f.word}</span>`, `<span class="nikud big-opt">${bad}</span>`], 0, go,
           { row: true, hint: "💡 בְּסוֹף מִלָּה הָאוֹת מוֹתַחַת רֶגֶל." });
       }
@@ -365,7 +365,7 @@
          <div class="build-slots">${us.map(() => `<span class="build-slot"></span>`).join("")}</div>
          <div class="build-tiles">${tiles.map(t => `<button class="build-tile nikud" data-i="${t.i}">${t.full}</button>`).join("")}</div>
          <button class="speak-mini" id="hear">🔊 ${g("שְׁמַע אֶת הַמִּלָּה", "שִׁמְעִי אֶת הַמִּלָּה")}</button>`);
-      const say = () => Speech.say(strip(w.w));
+      const say = () => Speech.say(w.w);
       document.getElementById("hear").onclick = say; say();
       const slots = box.querySelectorAll(".build-slot");
       let need = 0;
@@ -378,7 +378,7 @@
           need++;
           if (need === us.length) {
             State.addWordsRead(1); State.addLight(3);
-            setTimeout(() => { Speech.say(strip(w.w)); }, 200);
+            setTimeout(() => { Speech.say(w.w); }, 200);
             setTimeout(() => { if (alive(b)) ctx.next(); }, 1100);
           }
         } else { b.classList.add("miss"); UI.chime(false); setTimeout(() => b.classList.remove("miss"), 400); }
@@ -428,7 +428,7 @@
         const fs = shuffle(FONTS).slice(0, 3);
         const box = stage(ctx, "🕵️ מִי מִתְחַפֶּשֶׂת?",
           `<div class="abc-round">סִבּוּב ${i} מִתּוֹךְ ${total}</div><div id="q"></div>`);
-        Speech.say(`איפה האות ${target.name}`);
+        Speech.say(`אֵיפֹה הָאוֹת ${target.name}`);
         ask(document.getElementById("q"),
           `אֵיפֹה הָאוֹת <b>${target.name}</b>? <button class="speak-mini" onclick="Speech.say('${target.name}')">🔊</button>`,
           [target, ...others].map((o, k) => `<span class="opt-letter" style="font-family:${fs[k].css}">${o.ch}</span>`),

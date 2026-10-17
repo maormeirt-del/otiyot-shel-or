@@ -16,8 +16,9 @@ window.Speech = (function () {
     pickVoice();
     speechSynthesis.onvoiceschanged = pickVoice;
   }
-  // הסרת ניקוד עוזרת למנועי TTS רבים לבטא נכון
-  function strip(t) { return (t || "").replace(/[֑-ׇ]/g, ""); }
+  /* הניקוד נשאר: כרמית קוראת לפיו. בלי ניקוד "בֵּית" נקרא "בַּיִת", "דָּלֶת" "דֶּלֶת", "הֵא" "הָא".
+     מסירים רק טעמי מקרא (U+0591–U+05AF) וגרשיים שמבלבלים את המנוע. */
+  function clean(t) { return (t || "").replace(/[\u0591-\u05AF]/g, "").replace(/["'״׳]/g, ""); }
 
   /* שחרור הקול בנגיעה הראשונה: אייפון לא משמיע הקראה עד שהיא התחילה מתוך נגיעה,
      ובלי audioSession=playback מתג השקט משתיק את הצלילים. */
@@ -69,30 +70,30 @@ window.Speech = (function () {
   function say(text, opts) {
     opts = opts || {};
     if (!has) return;
-    play(make(opts.keepNikud ? text : strip(text), opts.rate || 0.85, opts.pitch || 1.05));  // קצב איטי לילדים
+    play(make(clean(text), opts.rate || 0.85, opts.pitch || 1.05));  // קצב איטי לילדים
   }
   function stop() { gen++; if (has) speechSynthesis.cancel(); }
   function available() { return has; }
 
   /* קריאה עם הדגשת מילה (קריוקי). onWord(index) נקרא לכל מילה. */
-  function wordStarts(clean) {
+  function wordStarts(str) {
     const starts = []; let inWord = false;
-    for (let i = 0; i < clean.length; i++) {
-      const sp = /\s/.test(clean[i]);
+    for (let i = 0; i < str.length; i++) {
+      const sp = /\s/.test(str[i]);
       if (!sp && !inWord) { starts.push(i); inWord = true; }
       if (sp) inWord = false;
     }
     return starts;
   }
   function sayHighlight(text, onWord, onEnd) {
-    const clean = strip(text);
-    const words = clean.split(/\s+/).filter(Boolean);
+    const spoken = clean(text);
+    const words = spoken.split(/\s+/).filter(Boolean);
     if (!has) {  // אין TTS — מדגיש לפי טיימר בלבד
       let i = 0; const t = setInterval(() => { if (i >= words.length) { clearInterval(t); onEnd && onEnd(); return; } onWord && onWord(i++); }, 480);
       return;
     }
-    const u = make(clean, 0.8, 1.05);
-    const starts = wordStarts(clean);
+    const u = make(spoken, 0.8, 1.05);
+    const starts = wordStarts(spoken);
     let usedBoundary = false, timer = null, ti = 0;
     u.onboundary = e => {
       if (e.charIndex == null) return;
